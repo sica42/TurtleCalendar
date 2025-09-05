@@ -98,7 +98,7 @@ function TurtleCalendar.events.PLAYER_LOGIN()
 
 	m.api[ "SLASH_TurtleCalendar1" ] = "/tc"
 	m.api[ "SLASH_TurtleCalendar2" ] = "/TurtleCalendar"
-	SlashCmdList[ "RaidCalendar" ] = m.slashHandler
+	SlashCmdList[ "TurtleCalendar" ] = m.slashHandler
 
 	m.version = GetAddOnMetadata( m.name, "Version" )
 	m.info( string.format( "(v%s) Loaded", m.version ) )
