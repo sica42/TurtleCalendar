@@ -123,6 +123,19 @@ function TurtleCalendar.events.CHAT_MSG_SYSTEM()
 	if arg1 and arg1 ~= "" then
 		local _, _, zone = string.find( arg1, string.gsub( INSTANCE_RESET_SUCCESS, "%%s", "(.+)" ) )
 		if zone and m.db.last_instance == zone then
+			SendAddonMessage("TurtleCalendar", "RESET:".. zone, "PARTY")
+			m.db.last_instance = ""
+		end
+	end
+end
+
+function TurtleCalendar.events.CHAT_MSG_ADDON()
+	if arg1 == "TurtleCalendar" and arg4 ~= UnitName( "player" ) then
+		local _, _, zone = string.find( arg2, "RESET:(.+)" )
+		local msg = string.sub( string.format( INSTANCE_RESET_SUCCESS, zone), 1, -2) .. " by " .. arg4 .. "."
+
+		DEFAULT_CHAT_FRAME:AddMessage(msg, ChatTypeInfo["SYSTEM"].r, ChatTypeInfo["SYSTEM"].g, ChatTypeInfo["SYSTEM"].b)
+		if zone and m.db.last_insance == zone then
 			m.db.last_instance = ""
 		end
 	end
@@ -690,6 +703,15 @@ function TurtleCalendar.toggle()
 end
 
 function TurtleCalendar.slashHandler( args )
+	if string.find( args, "^reset" ) then
+		if m.db.last_instance ~= "" then
+			m.info( m.db.last_instance .. " has been reset.")
+			m.db.last_instance = ""
+		else
+			m.info( "No instance to reset.")
+		end
+		return
+	end
 	m.toggle()
 end
 
