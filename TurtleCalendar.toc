@@ -1,0 +1,8 @@
+## Interface: 11200
+## Title: TurtleCalendar
+## Author: sica
+## Version: 0.1
+## Notes: In-game calendar that shows raid & instance reset timers
+## SavedVariablesPerCharacter: TurtleCalendarOptions
+
+TurtleCalendar.lua

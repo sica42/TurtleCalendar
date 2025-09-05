@@ -1,0 +1,24 @@
+{
+  "$schema": "https://raw.githubusercontent.com/LuaLS/vscode-lua/master/setting/schema.json",
+  "Lua.diagnostics.globals": [
+    "_",
+    "arg1",
+    "arg2",
+    "date",
+    "event",
+    "getn",
+    "this",
+    "time",
+    "GameFontNormal",
+    "GameFontNormalSmall",
+    "INSTANCE_RESET_SUCCESS",
+    "mod"
+  ],
+  "Lua.runtime.version": "Lua 5.1",
+  "Lua.workspace.checkThirdParty": false,
+  "Lua.workspace.ignoreDir": [],
+  "type.inferParamType": true,
+  "workspace.library": [ "../wow-api-type-definitions" ],
+  "diagnostics.disable": [],
+  "Lua.hint.enable": true
+}

@@ -1,0 +1,11 @@
+root = true
+
+[*.lua]
+max_line_length = 160
+space_inside_function_call_parentheses = true
+space_inside_function_param_list_parentheses = true
+space_inside_square_brackets = true
+trim_trailing_whitespace = true
+insert_final_newline = true
+indent_style = tab
+tab_width = 2

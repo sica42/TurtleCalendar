@@ -1,0 +1,3 @@
+<Bindings>
+	<Binding name="TURTLECALENDAR_OPENMENU"  header="TURTLECALENDAR_HEADER">TurtleCalendar.toggle()</Binding>
+</Bindings>
