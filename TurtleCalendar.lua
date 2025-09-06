@@ -89,6 +89,16 @@ function TurtleCalendar.events.PLAYER_LOGIN()
 	m.db = TurtleCalendarOptions
 	m.db.instances = m.db.instances or {}
 	m.db.last_instance = m.db.last_instance or ""
+	m.db.boxes = m.db.boxes or {
+		[ 1 ] = { "raid40", true },
+		[ 2 ] = { "ony", true },
+		[ 3 ] = { "kara", true },
+		[ 4 ] = { "zg", true },
+		[ 5 ] = { "eom", true },
+		[ 6 ] = { "bg", true },
+		[ 7 ] = { "dmf", true },
+		[ 8 ] = { "instances", true }
+	}
 
 	m.was_dead = false
 	m.delta = 1
@@ -123,7 +133,7 @@ function TurtleCalendar.events.CHAT_MSG_SYSTEM()
 	if arg1 and arg1 ~= "" then
 		local _, _, zone = string.find( arg1, string.gsub( INSTANCE_RESET_SUCCESS, "%%s", "(.+)" ) )
 		if zone and m.db.last_instance == zone then
-			SendAddonMessage("TurtleCalendar", "RESET:".. zone, "PARTY")
+			SendAddonMessage( "TurtleCalendar", "RESET:" .. zone, "PARTY" )
 			m.db.last_instance = ""
 		end
 	end
@@ -132,9 +142,9 @@ end
 function TurtleCalendar.events.CHAT_MSG_ADDON()
 	if arg1 == "TurtleCalendar" and arg4 ~= UnitName( "player" ) then
 		local _, _, zone = string.find( arg2, "RESET:(.+)" )
-		local msg = string.sub( string.format( INSTANCE_RESET_SUCCESS, zone), 1, -2) .. " by " .. arg4 .. "."
+		local msg = string.sub( string.format( INSTANCE_RESET_SUCCESS, zone ), 1, -2 ) .. " by " .. arg4 .. "."
 
-		DEFAULT_CHAT_FRAME:AddMessage(msg, ChatTypeInfo["SYSTEM"].r, ChatTypeInfo["SYSTEM"].g, ChatTypeInfo["SYSTEM"].b)
+		DEFAULT_CHAT_FRAME:AddMessage( msg, ChatTypeInfo[ "SYSTEM" ].r, ChatTypeInfo[ "SYSTEM" ].g, ChatTypeInfo[ "SYSTEM" ].b )
 		if zone and m.db.last_insance == zone then
 			m.db.last_instance = ""
 		end
@@ -373,7 +383,7 @@ function TurtleCalendar.create_frame()
 	---@class TurtleCalendarFrame: Frame
 	local frame = CreateFrame( "Frame", "TurtleCalendarPopup", UIParent )
 	frame:SetFrameStrata( "DIALOG" )
-	frame:SetWidth( 1070 ) --860 )
+	frame:SetWidth( 1070 )
 	frame:SetHeight( 460 )
 	frame:SetPoint( "Center", UIParent, "Center", 0, 100 )
 	frame:SetBackdrop( {
@@ -506,16 +516,6 @@ function TurtleCalendar.create_frame()
 	} )
 	m.boxes.eom:SetPoint( "TopLeft", m.boxes.zg, "TopRight", 5, 0 )
 
-	m.boxes.instances = m.create_box( frame, {
-		id = "instances",
-		name = "Instances",
-		background = m.images[ "instances" ],
-		header = "Instances",
-		width = bw,
-		height = 184,
-	} )
-	m.boxes.instances:SetPoint( "TopLeft", m.boxes.eom, "BottomLeft", 0, -5 )
-
 	m.boxes.bg = m.create_box( frame, {
 		id = "bg",
 		name = "Battleground",
@@ -539,6 +539,16 @@ function TurtleCalendar.create_frame()
 		height = 184 -- 413 * 0.4453125
 	} )
 	m.boxes.dmf:SetPoint( "TopLeft", m.boxes.bg, "TopRight", 5, 0 )
+
+	m.boxes.instances = m.create_box( frame, {
+		id = "instances",
+		name = "Instances",
+		background = m.images[ "instances" ],
+		header = "Instances",
+		width = bw,
+		height = 184,
+	} )
+	m.boxes.instances:SetPoint( "TopLeft", m.boxes.dmf, "TopRight", 5, 0 )
 
 	frame:SetScript( "OnUpdate", m.on_update )
 	frame:SetScript( "OnShow", function()
@@ -651,6 +661,8 @@ function TurtleCalendar.refresh()
 		m.boxes.dmf.sub1:SetText( "Darkmoon Faire position" )
 		m.boxes.dmf.sub2:SetText( "Moves out every Sunday" )
 	end
+
+	m.reorder()
 end
 
 function TurtleCalendar.popup_menu()
@@ -661,22 +673,80 @@ function TurtleCalendar.popup_menu()
 end
 
 function TurtleCalendar.popup_initialize()
-	local function on_click( arg1, arg2, checked )
-		--m.info( arg1 .. " - " .. tostring( checked ) )
-		--m.info(tostring(this.checked))
-		m.boxes[ arg1 ].set_visibility( not this.checked )
+	local function on_click( arg1 )
+		m.db.boxes[ arg1 ][ 2 ] = not this.checked
+
+		m.reorder()
 	end
+
 	local info = {}
 	info.func = on_click
 	info.keepShownOnClick = 1
 
-	for k, v in pairs( m.boxes ) do
-		info.text = v.data.name
-		info.arg1 = v.data.id
-		info.arg2 = "lala"
-		info.checked = v.is_visible
+	for i, box in ipairs( m.db.boxes ) do
+		info.text = m.boxes[ box[ 1 ] ].data.name
+		info.arg1 = i
+		info.checked = m.boxes[ box[ 1 ] ].is_visible
 
 		UIDropDownMenu_AddButton( info )
+	end
+end
+
+function TurtleCalendar.reorder()
+	local pos = 1
+	local prev_box
+	local line1
+	local line2
+
+	for i, box_info in ipairs( m.db.boxes ) do
+		---@type BoxFrame
+		local box = m.boxes[ box_info[ 1 ] ]
+
+		box.set_visibility( box_info[ 2 ] )
+		if box_info[ 2 ] then
+			if i <= 5 then
+				if pos == 1 then
+					box:SetPoint( "TopLeft", m.popup, "TopLeft", 15, -35 )
+					line1 = 1
+				else
+					box:SetPoint( "TopLeft", prev_box, "TopRight", 5, 0 )
+					line1 = line1 + 1
+				end
+			else
+				if not line2 then
+					box:SetPoint( "TopLeft", m.popup, "TopLeft", 15, -(35 + 222 + 5) )
+					line2 = 1
+				else
+					box:SetPoint( "TopLeft", prev_box, "TopRight", 5, 0 )
+					line2 = line2 + 1
+				end
+			end
+			pos = pos + 1
+			prev_box = box
+		end
+	end
+
+	if line2 then
+		if line1 then
+			m.popup:SetHeight( 460 )
+			if line1 < 2 and line2 < 2 and m.db.boxes[8][2] then
+				m.popup:SetWidth( 1070 - 209 - 209 - 209 -209)
+
+			elseif line1 < 3 and line2 < 2 then
+				m.popup:SetWidth( 1070 - 209 - 209 - 209 )
+			elseif line1 < 5 and line2 < 3 then
+				if line1 < 4 and (line2 < 2 or m.db.boxes[8][2]) then
+					m.popup:SetWidth( 1070 - 209 - 209 )
+				else
+					m.popup:SetWidth( 1070 - 209 )
+				end
+			else
+				m.popup:SetWidth( 1070 )
+			end
+		end
+	else
+		m.popup:SetHeight( 460 - 189 )
+		m.popup:SetWidth( 25 + (line1 or 1) * 209 )
 	end
 end
 
@@ -705,10 +775,10 @@ end
 function TurtleCalendar.slashHandler( args )
 	if string.find( args, "^reset" ) then
 		if m.db.last_instance ~= "" then
-			m.info( m.db.last_instance .. " has been reset.")
+			m.info( m.db.last_instance .. " has been reset." )
 			m.db.last_instance = ""
 		else
-			m.info( "No instance to reset.")
+			m.info( "No instance to reset." )
 		end
 		return
 	end
