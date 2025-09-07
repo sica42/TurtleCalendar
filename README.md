@@ -10,24 +10,25 @@ Shows you an in-game calendar with all relevant timers:
 
 Use `/turtlecalendar` or `/tc` to toggle calendar, or assign a hotkey in key bindings.
 
-Right click the calendar to toggle the visibility of the different timers. You toggle dates on in the right click menu.
+Right click the calendar to toggle the visibility of the different timers. You can also toggle dates on/off in the right click menu.
 
 If you are grouped and group leader does a "Reset all instances" you will have to manually reset the current instance timer. You can do this with `/tc reset`.
 If the group leader have TurtleCalendar installed you do not need to do this.
 
-<img width="1352" height="578" alt="Screenshot 2025-09-06 023437" src="https://github.com/user-attachments/assets/58a58f3e-f43c-473c-92e1-fefd3b04e5a6" />
+<img width="1351" height="577" alt="Turtle Calendar" src="https://github.com/user-attachments/assets/e6369d2e-5b78-4df3-b1f4-e0968873019c" />
 
 ---
 
 ## 🧰 Slash Commands
 
-- `/tc` - Yoggle calendar.
+- `/tc` - Toggle calendar.
 - `/tc help` - Show all slash commands. 
 - `/tc reset` - Manually reset current instance timer.
 - `/tc minimap` - Toggle minimap button.
 - `/tc dateformat [format]` - Set date format used when when `Show dates` is on.
 
-The date format uses LUA syntax and the default format is "%d.%m.%Y". See https://documentation.help/Manuale_LUA/dateformat.htm for details on how to customize the date.
+The date format uses LUA syntax and the default format is "%d.%m.%Y".
+See https://documentation.help/Manuale_LUA/dateformat.htm for details on how to customize the date.
 
 ---
 
