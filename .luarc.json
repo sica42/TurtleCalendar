@@ -10,6 +10,7 @@
     "date",
     "event",
     "getn",
+    "LibStub",
     "this",
     "time",
     "GameFontNormal",
@@ -19,9 +20,13 @@
   ],
   "Lua.runtime.version": "Lua 5.1",
   "Lua.workspace.checkThirdParty": false,
-  "Lua.workspace.ignoreDir": [],
+  "Lua.workspace.ignoreDir": [
+    "libs"
+  ],
   "type.inferParamType": true,
-  "workspace.library": [ "../wow-api-type-definitions" ],
+  "workspace.library": [
+    "../wow-api-type-definitions"
+  ],
   "diagnostics.disable": [],
   "Lua.hint.enable": true
 }

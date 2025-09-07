@@ -4,12 +4,13 @@ TurtleCalendar = TurtleCalendar or {}
 ---@class TurtleCalendar
 local m = TurtleCalendar
 
+BINDING_HEADER_TURTLECALENDAR_HEADER = "Turtle Calendar"
+BINDING_NAME_TURTLECALENDAR_OPENMENU = "Toggle the calendar"
+
 TurtleCalendar.name = "TurtleCalendar"
 TurtleCalendar.tagcolor = "FF4E8A00"
 TurtleCalendar.events = {}
-
-BINDING_HEADER_TURTLECALENDAR_HEADER = "Turtle Calendar"
-BINDING_NAME_TURTLECALENDAR_OPENMENU = "Toggle the calendar"
+TurtleCalendar.debug_enabled = false
 
 TurtleCalendar.images = {
 	[ "bwl" ] = { image = "Interface\\AddOns\\TurtleCalendar\\assets\\bwl.blp", height = 276 / 512 },
@@ -70,6 +71,15 @@ TurtleCalendar.timers = {
 	}
 }
 
+TurtleCalendar.instance_name_map = {
+	[ "The Stockade" ] = "Stormwind Stockade",
+	[ "The Deadmines" ] = "Deadmines",
+	[ "Caverns of Time" ] = "The Black Morass",
+	[ "The Temple of Atal'Hakkar"] = "Sunken Temple"
+}
+
+setmetatable( TurtleCalendar.instance_name_map, { __index = function( _, key ) return key end } );
+
 function TurtleCalendar:init()
 	self.frame = CreateFrame( "Frame" )
 	self.frame:SetScript( "OnEvent", function()
@@ -89,6 +99,8 @@ function TurtleCalendar.events.PLAYER_LOGIN()
 	m.db = TurtleCalendarOptions
 	m.db.instances = m.db.instances or {}
 	m.db.last_instance = m.db.last_instance or ""
+	m.db.date_format = m.db.date_format or "%d.%m.%Y"
+	m.db.minimap_icon = m.db.minimap_icon or { hide = false }
 	m.db.boxes = m.db.boxes or {
 		[ 1 ] = { "raid40", true },
 		[ 2 ] = { "ony", true },
@@ -100,11 +112,13 @@ function TurtleCalendar.events.PLAYER_LOGIN()
 		[ 8 ] = { "instances", true }
 	}
 
-	m.was_dead = false
+	m.time_offset = 3600
 	m.delta = 1
 	m.realm = GetRealmName()
-	m.frame_cache = {}
 	m.api = getfenv()
+
+	---@class MinimapIcon
+	m.minimap_icon = m.MinimapIcon.new()
 
 	m.api[ "SLASH_TurtleCalendar1" ] = "/tc"
 	m.api[ "SLASH_TurtleCalendar2" ] = "/TurtleCalendar"
@@ -114,27 +128,26 @@ function TurtleCalendar.events.PLAYER_LOGIN()
 	m.info( string.format( "(v%s) Loaded", m.version ) )
 end
 
-function TurtleCalendar.events.ZONE_CHANGED_NEW_AREA()
-	local in_instance, instance_type = IsInInstance()
-	local zone_name = GetRealZoneText()
+function TurtleCalendar.events.PLAYER_ENTERING_WORLD()
+	local timer = 0
 
-	m.clear_expired_instances()
-	if in_instance and instance_type == "party" and m.db.last_instance ~= zone_name and not m.was_dead then
-		--m.info( "Add new: " .. zone_name )
-
-		table.insert( m.db.instances, { zone_name, time() } )
-
-		m.db.last_instance = zone_name
-	end
-	m.was_dead = UnitIsGhost( "player" )
+	-- Wait 1 second for zone name to update before checking instance
+	m.frame:SetScript( "OnUpdate", function()
+		timer = timer + arg1
+		if timer >= 1 then
+			m.frame:SetScript( "OnUpdate", nil )
+			m.check_instance()
+		end
+	end )
 end
 
 function TurtleCalendar.events.CHAT_MSG_SYSTEM()
 	if arg1 and arg1 ~= "" then
 		local _, _, zone = string.find( arg1, string.gsub( INSTANCE_RESET_SUCCESS, "%%s", "(.+)" ) )
+
 		if zone and m.db.last_instance == zone then
+			m.reset_instance( zone )
 			SendAddonMessage( "TurtleCalendar", "RESET:" .. zone, "PARTY" )
-			m.db.last_instance = ""
 		end
 	end
 end
@@ -144,9 +157,9 @@ function TurtleCalendar.events.CHAT_MSG_ADDON()
 		local _, _, zone = string.find( arg2, "RESET:(.+)" )
 		local msg = string.sub( string.format( INSTANCE_RESET_SUCCESS, zone ), 1, -2 ) .. " by " .. arg4 .. "."
 
-		DEFAULT_CHAT_FRAME:AddMessage( msg, ChatTypeInfo[ "SYSTEM" ].r, ChatTypeInfo[ "SYSTEM" ].g, ChatTypeInfo[ "SYSTEM" ].b )
-		if zone and m.db.last_insance == zone then
-			m.db.last_instance = ""
+		if zone and m.db.last_instance == zone then
+			DEFAULT_CHAT_FRAME:AddMessage( msg, ChatTypeInfo[ "SYSTEM" ].r, ChatTypeInfo[ "SYSTEM" ].g, ChatTypeInfo[ "SYSTEM" ].b )
+			m.reset_instance( zone )
 		end
 	end
 end
@@ -166,6 +179,71 @@ function TurtleCalendar.events.UPDATE_INSTANCE_INFO()
 			}
 		end
 	end
+end
+
+function TurtleCalendar.events.PLAYER_REGEN_DISABLED()
+	if m.current_instance then
+		m.debug( "Instance locked: " .. m.current_instance.name )
+		table.insert( m.db.instances, m.current_instance )
+		m.current_instance = nil
+	end
+end
+
+function TurtleCalendar.check_instance()
+	local in_instance, instance_type = IsInInstance()
+	local zone_name = GetRealZoneText()
+
+	-- Fix zones names so they match reset message
+	zone_name = string.gsub( zone_name, "(Scarlet Monastery).*", "%1" )
+	zone_name = m.instance_name_map[ zone_name ]
+
+	m.clear_expired_instances()
+	if in_instance and instance_type == "party" and m.db.last_instance ~= zone_name then
+		local instance = m.find( zone_name, m.db.instances, "name" )
+
+		if instance then
+			-- Only set current_instance if existing one is locked by manual reset
+			if instance.locked then
+				m.current_instance = { name = zone_name, timestamp = time() }
+			end
+		else
+			m.debug( "New instances: " .. zone_name )
+			m.current_instance = { name = zone_name, timestamp = time() }
+		end
+
+		m.db.last_instance = zone_name
+	else
+		m.current_instance = nil
+	end
+end
+
+function TurtleCalendar.clear_expired_instances()
+	local now = time()
+	local instances = {}
+	for _, v in ipairs( m.db.instances ) do
+		if (now - v.timestamp < m.time_offset) then
+			table.insert( instances, v )
+		end
+	end
+
+	m.db.instances = instances
+	if next( instances ) == nil then
+		m.db.last_instance = ""
+	end
+end
+
+function TurtleCalendar.reset_instance( zone )
+	local instance = m.find( zone, m.db.instances, "name" )
+	if instance then
+		m.debug( "Reset, instance locked: " .. instance.name )
+		instance.locked = true
+	elseif m.db.last_instance then
+		m.debug( "Reset, no active instance. Adding latest: " .. m.db.last_instance )
+		table.insert( m.db.instances, { name = m.db.last_instance, timestamp = time(), locked = true } )
+	end
+
+	m.db.last_instance = ""
+	m.current_instance = nil
 end
 
 ---@param parent Frame
@@ -258,18 +336,31 @@ function TurtleCalendar.create_box( parent, data )
 		sub3:SetPoint( "Top", sub2, "Bottom", 0, -5 )
 		frame.sub3 = sub3
 
+		local inst_name = frame:CreateFontString( nil, "OVERLAY" )
+		inst_name:SetFont( "Interface\\AddOns\\TurtleCalendar\\assets\\AoboshiOne.ttf", 10, "" )
+		inst_name:SetTextColor( 0.8, 0.8, 0.8, 1 )
+		inst_name:SetPoint( "TopLeft", frame, "TopLeft", 30, -90 )
+		inst_name:SetJustifyH( "Left" )
+		frame.inst_name = inst_name
+
+		local inst_id = frame:CreateFontString( nil, "OVERLAY" )
+		inst_id:SetFont( "Interface\\AddOns\\TurtleCalendar\\assets\\AoboshiOne.ttf", 10, "" )
+		inst_id:SetTextColor( 0.8, 0.8, 0, 1 )
+		inst_id:SetPoint( "TopRight", frame, "TopRight", -30, -90 )
+		inst_id:SetJustifyH( "Right" )
+		frame.inst_id = inst_id
+
 		local time = CreateFrame( "Frame", nil, frame )
 		time:SetWidth( 150 )
 		time:SetHeight( 35 )
 		time:SetPoint( "Center", frame, "Center", 0, 0 )
-		time:SetPoint( "Bottom", frame, "Bottom", 0, 30 )
+		time:SetPoint( "Bottom", frame, "Bottom", 0, 35 )
 		frame.time = time
 
 		local days = time:CreateFontString( nil, "OVERLAY" )
 		days:SetFont( "Interface\\AddOns\\TurtleCalendar\\assets\\Monaco.ttf", 25, "" )
 		days:SetTextColor( 0.8, 0.8, 0.8, 1 )
 		days:SetPoint( "TopLeft", time, "TopLeft", 0, 0 )
-		days:SetText( "02" )
 		frame.days = days
 
 		local label_days = time:CreateFontString( nil, "OVERLAY" )
@@ -283,7 +374,6 @@ function TurtleCalendar.create_box( parent, data )
 		hours:SetFont( "Interface\\AddOns\\TurtleCalendar\\assets\\Monaco.ttf", 25, "" )
 		hours:SetTextColor( 0.8, 0.8, 0.8, 1 )
 		hours:SetPoint( "BottomLeft", days, "BottomRight", 15, 0 )
-		hours:SetText( "03" )
 		frame.hours = hours
 
 		local label_hours = time:CreateFontString( nil, "OVERLAY" )
@@ -297,7 +387,6 @@ function TurtleCalendar.create_box( parent, data )
 		min:SetFont( "Interface\\AddOns\\TurtleCalendar\\assets\\Monaco.ttf", 25, "" )
 		min:SetTextColor( 0.8, 0.8, 0.8, 1 )
 		min:SetPoint( "BottomLeft", hours, "BottomRight", 15, 0 )
-		min:SetText( "23" )
 		frame.min = min
 
 		local label_min = time:CreateFontString( nil, "OVERLAY" )
@@ -311,7 +400,6 @@ function TurtleCalendar.create_box( parent, data )
 		sec:SetFont( "Interface\\AddOns\\TurtleCalendar\\assets\\Monaco.ttf", 10, "" )
 		sec:SetTextColor( 0.8, 0.8, 0.8, 1 )
 		sec:SetPoint( "BottomLeft", min, "BottomRight", 10, 0 )
-		sec:SetText( "23" )
 		frame.sec = sec
 
 		local label_sec = time:CreateFontString( nil, "OVERLAY" )
@@ -319,11 +407,17 @@ function TurtleCalendar.create_box( parent, data )
 		label_sec:SetTextColor( 0.8, 0.8, 0.8, 1 )
 		label_sec:SetPoint( "TopLeft", sec, "BottomLeft", 0, 0 )
 		label_sec:SetText( "sec" )
+
+		local date = frame:CreateFontString( nil, "OVERLAY" )
+		date:SetFont( "Interface\\AddOns\\TurtleCalendar\\assets\\Monaco.ttf", 12, "" )
+		date:SetPoint( "Center", frame, "Center", 0, 0 )
+		date:SetPoint( "Top", time, "Bottom", 0, -5 )
+		frame.date = date
 	end
 
 	if data.id == "bg" then
 		bg:SetPoint( "BottomRight", frame, "BottomRight", -4, 45 )
-		frame.time:SetPoint( "Bottom", frame, "Bottom", 0, 55 )
+		frame.time:SetPoint( "Bottom", frame, "Bottom", 0, 65 )
 
 		local next_bg = frame:CreateTexture( nil, "ARTWORK" )
 		next_bg:SetPoint( "TopLeft", frame, "BottomLeft", 4, 43 )
@@ -372,7 +466,6 @@ function TurtleCalendar.create_box( parent, data )
 			frame:Hide()
 		end
 	end
-
 
 	frame.is_visible = true
 	frame.data = data
@@ -580,6 +673,16 @@ function TurtleCalendar.on_update()
 				box.hours:SetText( string.format( "%02d", hours ) )
 				box.min:SetText( string.format( "%02d", min ) )
 				box.sec:SetText( string.format( "%02d", sec ) )
+
+				if m.db.show_dates then
+					box.date:Show()
+					box.date:SetText( date( m.db.date_format, time( date( "*t", next + m.time_offset ) ) ) )
+				else
+					box.date:Hide()
+				end
+				if box.data.id == "bg" then
+					box.time:SetPoint( "Bottom", box, "Bottom", 0, m.db.show_dates and 65 or 55 )
+				end
 			end
 		end
 
@@ -589,11 +692,13 @@ function TurtleCalendar.on_update()
 		if box.is_visible then
 			local now = time()
 			for i, instance in ipairs( m.db.instances ) do
-				box[ "inst" .. i .. "_name" ]:SetText( instance[ 1 ] )
+				if i > 5 then return end
+				box[ "inst" .. i .. "_name" ]:SetText( instance.name )
 				box[ "inst" .. i .. "_name" ]:SetJustifyH( "Left" )
-				box[ "inst" .. i .. "_time" ]:SetText( date( "%Mm%Ss", 3600 - (now - instance[ 2 ]) ) )
+				box[ "inst" .. i .. "_time" ]:SetText( date( "%Mm%Ss", 3600 - (now - instance.timestamp) ) )
 			end
 			for i = getn( m.db.instances ) + 1, 5 do
+				if i > 5 then return end
 				box[ "inst" .. i .. "_name" ]:SetText( "" )
 				box[ "inst" .. i .. "_time" ]:SetText( "" )
 			end
@@ -611,21 +716,22 @@ function TurtleCalendar.refresh()
 		return
 	end
 
-	SetMapToCurrentZone()
-	m.current_map_continent = GetCurrentMapContinent()
 	m.sday = m.server_day_number()
 
 	-- Raids
-	m.boxes.raid40.sub3:SetText( "" )
-	m.boxes.zg.sub3:SetText( "" )
+	m.boxes.raid40.inst_name:SetText( "" )
+	m.boxes.raid40.inst_id:SetText( "" )
+	m.boxes.zg.inst_name:SetText( "" )
+	m.boxes.zg.inst_id:SetText( "" )
 
 	for k, v in pairs( m.raids ) do
-		if m.instances[ k ] then
+		local box = m.boxes[ v ]
+		if m.instances[ k ] and box.is_visible then
 			if v == "kara" or v == "ony" then
-				m.boxes[ v ].sub1:SetText( "ID: " .. m.instances[ k ].id )
+				m.boxes[ v ].sub1:SetText( string.format( "ID: |cffdddd00%s|r", m.instances[ k ].id ) )
 			else
-				local t = m.boxes[ v ].sub3:GetText() or ""
-				m.boxes[ v ].sub3:SetText( t .. "\n" .. k .. " " .. m.instances[ k ].id )
+				box.inst_name:SetText( (box.inst_name:GetText() or "") .. k .. "\n" )
+				box.inst_id:SetText( (box.inst_id:GetText() or "") .. m.instances[ k ].id .. "\n" )
 			end
 		end
 	end
@@ -648,7 +754,7 @@ function TurtleCalendar.refresh()
 
 	-- Darkmoon Fair
 	local dmf_idx = mod( math.floor( (m.sday - 3) / m.timers[ m.realm ][ "dmf" ].interval ), 2 ) + 1
-	local now = date( "!*t", m.get_server_time() + 3600 )
+	local now = date( "!*t", m.get_server_time() + m.time_offset )
 	local dmf = dmf_idx == 1 and "Thunder Bluff" or "Goldshire"
 
 	m.boxes.dmf.bg:SetTexture( m.images[ dmf ].image )
@@ -690,6 +796,22 @@ function TurtleCalendar.popup_initialize()
 
 		UIDropDownMenu_AddButton( info )
 	end
+
+
+	info = { isTitle = true, text = "" }
+	UIDropDownMenu_AddButton( info )
+
+	info = {
+		text = "Show dates",
+		keepShownOnClick = 1,
+		checked = m.db.show_dates or false,
+		func = function()
+			m.db.show_dates = not this.checked
+			m.delta = 1
+		end
+	}
+
+	UIDropDownMenu_AddButton( info )
 end
 
 function TurtleCalendar.reorder()
@@ -729,13 +851,12 @@ function TurtleCalendar.reorder()
 	if line2 then
 		if line1 then
 			m.popup:SetHeight( 460 )
-			if line1 < 2 and line2 < 2 and m.db.boxes[8][2] then
-				m.popup:SetWidth( 1070 - 209 - 209 - 209 -209)
-
+			if line1 < 2 and line2 < 2 and m.db.boxes[ 8 ][ 2 ] then
+				m.popup:SetWidth( 1070 - 209 - 209 - 209 - 209 )
 			elseif line1 < 3 and line2 < 2 then
 				m.popup:SetWidth( 1070 - 209 - 209 - 209 )
 			elseif line1 < 5 and line2 < 3 then
-				if line1 < 4 and (line2 < 2 or m.db.boxes[8][2]) then
+				if line1 < 4 and (line2 < 2 or m.db.boxes[ 8 ][ 2 ]) then
 					m.popup:SetWidth( 1070 - 209 - 209 )
 				else
 					m.popup:SetWidth( 1070 - 209 )
@@ -773,13 +894,37 @@ function TurtleCalendar.toggle()
 end
 
 function TurtleCalendar.slashHandler( args )
-	if string.find( args, "^reset" ) then
+	if string.find( args, "^help" ) then
+		m.info( "TurtleCalendar commands:", true )
+		m.info( "/tc reset - Manually reset current instance timer", true )
+		m.info( "/tc minimap - Toggle minimap button", true )
+		m.info( "/tc dateform [format] - Sets date format. See readme for details", true )
+		return
+	elseif string.find( args, "^reset" ) then
 		if m.db.last_instance ~= "" then
 			m.info( m.db.last_instance .. " has been reset." )
-			m.db.last_instance = ""
+			m.reset_instance( m.db.last_instance )
 		else
 			m.info( "No instance to reset." )
 		end
+		return
+	elseif string.find( args, "^dateformat" ) then
+		local date_format = string.gsub( args, "^dateformat (.*)", "%1" )
+		m.db.date_format = date_format
+		return
+	elseif string.find( args, "^minimap" ) then
+		m.db.minimap_icon.hide = not m.db.minimap_icon.hide
+		if m.db.minimap_icon.hide then
+			m.info( "Minimap button is now hidden." )
+			m.minimap_icon.icon:Hide( m.name )
+		else
+			m.info( "Minimap button is now visible." )
+			m.minimap_icon.icon:Show( m.name )
+		end
+		return
+	elseif string.find( args, "^debug" ) then
+		m.debug_enabled = not m.debug_enabled
+		m.info( "Debug is " .. (m.debug_enabled and "enabled." or "disabled.") )
 		return
 	end
 	m.toggle()
@@ -792,18 +937,11 @@ function TurtleCalendar.info( message, short )
 	DEFAULT_CHAT_FRAME:AddMessage( string.format( "%s: %s", tag, message ) )
 end
 
-function TurtleCalendar.clear_expired_instances()
-	local now = time()
-	local instances = {}
-	for _, v in ipairs( m.db.instances ) do
-		if (now - v[ 2 ] < 3600) then
-			table.insert( instances, v )
-		end
-	end
-
-	m.db.instances = instances
-	if next( instances ) == nil then
-		m.db.last_instance = ""
+---@param message string
+function TurtleCalendar.debug( message )
+	if m.debug then
+		local tag = string.format( "|c%s%s|r", m.tagcolor, "TR" )
+		DEFAULT_CHAT_FRAME:AddMessage( string.format( "%s: %s", tag, message ) )
 	end
 end
 
@@ -811,9 +949,7 @@ end
 ---@nodiscard
 function TurtleCalendar.get_server_time()
 	local server_ts = time()
-	server_ts = server_ts - 3600
-
-	--server_ts = server_ts + 3600*24*5
+	server_ts = server_ts - m.time_offset
 
 	return server_ts
 end
@@ -822,7 +958,7 @@ end
 function TurtleCalendar.server_day_number()
 	local server_ts = TurtleCalendar.get_server_time()
 
-	return math.floor( (server_ts + 3600) / 86400 )
+	return math.floor( (server_ts + m.time_offset) / 86400 )
 end
 
 ---@param raid table
@@ -855,6 +991,31 @@ function TurtleCalendar.seconds_dhms( seconds )
 	seconds = mod( seconds, 60 )
 
 	return days, hours, min, seconds
+end
+
+---@param value string|number
+---@param t table
+---@param extract_field string?
+function TurtleCalendar.find( value, t, extract_field )
+	if type( t ) ~= "table" or m.count( t ) == 0 then return nil end
+
+	for i, v in pairs( t ) do
+		local val = extract_field and v[ extract_field ] or v
+		if val == value then return v, i end
+	end
+
+	return nil
+end
+
+---@param t table
+---@return number
+function TurtleCalendar.count( t )
+	local count = 0
+	for _ in pairs( t ) do
+		count = count + 1
+	end
+
+	return count
 end
 
 TurtleCalendar:init()
