@@ -221,8 +221,10 @@ function TurtleCalendar.clear_expired_instances()
 	local now = time()
 	local instances = {}
 	for _, v in ipairs( m.db.instances ) do
-		if (now - v.timestamp < m.time_offset) then
-			table.insert( instances, v )
+		if v.timestamp then
+			if (now - v.timestamp < m.time_offset) then
+				table.insert( instances, v )
+			end
 		end
 	end
 
