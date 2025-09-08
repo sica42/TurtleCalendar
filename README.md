@@ -20,6 +20,9 @@ If the group leader have TurtleCalendar installed you do not need to do this.
 
 <img width="1351" height="577" alt="Turtle Calendar" src="https://github.com/user-attachments/assets/e6369d2e-5b78-4df3-b1f4-e0968873019c" />
 
+> [!NOTE]
+> Reset timers for Ambershire are probably not correct.
+
 ---
 
 ## 🧰 Slash Commands
