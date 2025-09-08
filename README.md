@@ -10,7 +10,10 @@ Shows you an in-game calendar with all relevant timers:
 
 Use `/turtlecalendar` or `/tc` to toggle calendar, or assign a hotkey in key bindings.
 
-Right click the calendar to toggle the visibility of the different timers. You can also toggle dates on/off in the right click menu.
+Right click the calendar to adjust the following options:
+* Toggle visibility of the different timers.
+* Toggle condensed timers
+* Toggle date
 
 If you are grouped and group leader does a "Reset all instances" you will have to manually reset the current instance timer. You can do this with `/tc reset`.
 If the group leader have TurtleCalendar installed you do not need to do this.
