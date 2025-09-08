@@ -1,5 +1,5 @@
 # TurtleCalendar
-**Version:** 0.2
+**Version:** 0.4
 **Game Version:** Turtle WoW (Interface 11200)
 
 Shows you an in-game calendar with all relevant timers:
