@@ -124,6 +124,7 @@ function TurtleCalendar.events.PLAYER_LOGIN()
 
 	m.time_offset = 3600
 	m.delta = 1
+	m.first = true
 	m.realm = GetRealmName()
 	m.api = getfenv()
 
@@ -139,6 +140,11 @@ function TurtleCalendar.events.PLAYER_LOGIN()
 end
 
 function TurtleCalendar.events.PLAYER_ENTERING_WORLD()
+	if m.first then
+		m.first = false
+		return
+	end
+
 	local timer = 0
 
 	-- Wait 3 seconds for zone name to update before checking instance
@@ -761,14 +767,16 @@ function TurtleCalendar.refresh()
 	m.boxes.zg.inst_name:SetText( "" )
 	m.boxes.zg.inst_id:SetText( "" )
 
-	for k, v in pairs( m.raids ) do
-		local box = m.boxes[ v ]
-		if m.instances[ k ] and box.is_visible then
-			if v == "kara" or v == "ony" then
-				m.boxes[ v ].sub1:SetText( string.format( "ID: |cffdddd00%s|r", m.instances[ k ].id ) )
-			else
-				box.inst_name:SetText( (box.inst_name:GetText() or "") .. k .. "\n" )
-				box.inst_id:SetText( (box.inst_id:GetText() or "") .. m.instances[ k ].id .. "\n" )
+	if m.instances then
+		for k, v in pairs( m.raids ) do
+			local box = m.boxes[ v ]
+			if m.instances[ k ] and box.is_visible then
+				if v == "kara" or v == "ony" then
+					m.boxes[ v ].sub1:SetText( string.format( "ID: |cffdddd00%s|r", m.instances[ k ].id ) )
+				else
+					box.inst_name:SetText( (box.inst_name:GetText() or "") .. k .. "\n" )
+					box.inst_id:SetText( (box.inst_id:GetText() or "") .. m.instances[ k ].id .. "\n" )
+				end
 			end
 		end
 	end
