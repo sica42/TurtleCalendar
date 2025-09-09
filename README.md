@@ -18,10 +18,13 @@ Right click the calendar to adjust the following options:
 If you are grouped and group leader does a "Reset all instances" you will have to manually reset the current instance timer. You can do this with `/tc reset`.
 If the group leader have TurtleCalendar installed you do not need to do this.
 
-<img width="1351" height="577" alt="Turtle Calendar" src="https://github.com/user-attachments/assets/e6369d2e-5b78-4df3-b1f4-e0968873019c" />
-
 > [!NOTE]
-> Reset timers for Ambershire are probably not correct.
+> Reset timers have only been added for european server.
+> Nordanaar is 100% correct. Tel`Abim should be correct except Edge of Madness which currently is the same as Nordanaar.
+> Reset timers for Ambershire are currently the same as Nordanaar and probably wrong.
+> Please post a new issue under Issues if you play on another server and know the reset times.
+
+<img width="1351" height="577" alt="Turtle Calendar" src="https://github.com/user-attachments/assets/e6369d2e-5b78-4df3-b1f4-e0968873019c" />
 
 ---
 
