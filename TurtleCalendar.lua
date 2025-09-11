@@ -511,6 +511,7 @@ function TurtleCalendar.create_frame()
 	frame:SetBackdropColor( 0, 0, 0, 0.8 )
 	frame:EnableMouse( true )
 	frame:SetMovable( true )
+	frame:SetResizable( true )
 	frame:RegisterForDrag( "LeftButton" )
 	frame:SetClampedToScreen( true )
 
@@ -532,6 +533,9 @@ function TurtleCalendar.create_frame()
 			y = y
 		}
 	end )
+
+	frame:SetScript( "OnSizeChanged", m.on_resize )
+
 
 	if m.db.position then
 		local p = m.db.position
@@ -569,10 +573,15 @@ function TurtleCalendar.create_frame()
 	title:SetText( "Turtle Calendar v" .. m.version )
 
 	-- Main content
+	local content = CreateFrame( "Frame", nil, frame )
+	content:SetPoint( "TopLeft", frame, "TopLeft", 15, -35 )
+	content:SetPoint( "BottomRight", frame, "BottomRight", 0, 0 )
+	frame.content = content
+
 	local bw, bh = 204, 222
 	m.boxes = {}
 
-	m.boxes.raid40 = m.create_box( frame, {
+	m.boxes.raid40 = m.create_box( content, {
 		id = "raid40",
 		name = "Raid 40",
 		background = m.images[ "bwl" ],
@@ -582,9 +591,9 @@ function TurtleCalendar.create_frame()
 		width = bw,
 		height = bh
 	} )
-	m.boxes.raid40:SetPoint( "TopLeft", frame, "TopLeft", 15, -35 )
+	m.boxes.raid40:SetPoint( "TopLeft", content, "TopLeft", 0, 0 )
 
-	m.boxes.ony = m.create_box( frame, {
+	m.boxes.ony = m.create_box( content, {
 		id = "ony",
 		name = "Onyxia",
 		background = m.images[ "ony" ],
@@ -595,7 +604,7 @@ function TurtleCalendar.create_frame()
 	} )
 	m.boxes.ony:SetPoint( "TopLeft", m.boxes.raid40, "TopRight", 5, 0 )
 
-	m.boxes.kara = m.create_box( frame, {
+	m.boxes.kara = m.create_box( content, {
 		id = "kara",
 		name = "Karazhan",
 		background = m.images[ "kara" ],
@@ -606,7 +615,7 @@ function TurtleCalendar.create_frame()
 	} )
 	m.boxes.kara:SetPoint( "TopLeft", m.boxes.ony, "TopRight", 5, 0 )
 
-	m.boxes.zg = m.create_box( frame, {
+	m.boxes.zg = m.create_box( content, {
 		id = "zg",
 		name = "Raid 20",
 		background = m.images[ "zg" ],
@@ -618,7 +627,7 @@ function TurtleCalendar.create_frame()
 	} )
 	m.boxes.zg:SetPoint( "TopLeft", m.boxes.kara, "TopRight", 5, 0 )
 
-	m.boxes.eom = m.create_box( frame, {
+	m.boxes.eom = m.create_box( content, {
 		id = "eom",
 		name = "Edge of Madness",
 		background = m.images[ "eom" ],
@@ -630,7 +639,7 @@ function TurtleCalendar.create_frame()
 	} )
 	m.boxes.eom:SetPoint( "TopLeft", m.boxes.zg, "TopRight", 5, 0 )
 
-	m.boxes.bg = m.create_box( frame, {
+	m.boxes.bg = m.create_box( content, {
 		id = "bg",
 		name = "Battleground",
 		background = m.images[ "bg_arathi" ],
@@ -642,7 +651,7 @@ function TurtleCalendar.create_frame()
 	} )
 	m.boxes.bg:SetPoint( "TopLeft", m.boxes.raid40, "BottomLeft", 0, -5 )
 
-	m.boxes.dmf = m.create_box( frame, {
+	m.boxes.dmf = m.create_box( content, {
 		id = "dmf",
 		name = "Darkmoon faire",
 		background = m.images[ "Thunder Bluff" ],
@@ -654,7 +663,7 @@ function TurtleCalendar.create_frame()
 	} )
 	m.boxes.dmf:SetPoint( "TopLeft", m.boxes.bg, "TopRight", 5, 0 )
 
-	m.boxes.instances = m.create_box( frame, {
+	m.boxes.instances = m.create_box( content, {
 		id = "instances",
 		name = "Instances",
 		background = m.images[ "instances" ],
@@ -663,6 +672,9 @@ function TurtleCalendar.create_frame()
 		height = 184,
 	} )
 	m.boxes.instances:SetPoint( "TopLeft", m.boxes.dmf, "TopRight", 5, 0 )
+
+	local resize_grip = m.resize_grip( frame )
+	resize_grip:SetPoint( "BottomRight", frame, "BottomRight", -6, 6 )
 
 	frame:SetScript( "OnUpdate", m.on_update )
 	frame:SetScript( "OnShow", function()
@@ -674,6 +686,31 @@ function TurtleCalendar.create_frame()
 	m.popup_frame.initialize = m.popup_initialize
 
 	return frame
+end
+
+function TurtleCalendar.resize_grip( parent, on_start, on_end )
+	local button = m.api.CreateFrame( "Button", nil, parent )
+	button:SetWidth( 16 )
+	button:SetHeight( 16 )
+	button:SetNormalTexture( "Interface\\AddOns\\TurtleCalendar\\assets\\resize-grip.tga", "ARTWORK" )
+	button:GetNormalTexture():SetAllPoints( button )
+
+	button:SetScript( "OnEnter", function()
+		button:GetNormalTexture():SetBlendMode( "ADD" )
+	end )
+	button:SetScript( "OnLeave", function()
+		button:GetNormalTexture():SetBlendMode( "BLEND" )
+	end )
+	button:SetScript( "OnMouseDown", function()
+		parent:StartSizing( "BOTTOMRIGHT" )
+		if on_start then on_start( parent ) end
+	end )
+	button:SetScript( "OnMouseUp", function()
+		parent:StopMovingOrSizing()
+		if on_end then on_end( parent ) end
+	end )
+
+	return button
 end
 
 function TurtleCalendar.on_update()
@@ -866,6 +903,21 @@ function TurtleCalendar.popup_initialize()
 	end
 end
 
+function TurtleCalendar.on_resize()
+	local self = m.popup
+	local min_width, max_width = m.width / 1.7, m.width
+	local width = math.max( min_width, math.min( max_width, self:GetWidth() ) )
+	local scale = (width - 30) / (m.width - 30)
+	local height = width * (m.height / m.width)
+	height = height + (20 * (m.height / height) )-20
+	m.db.scale = width / m.width
+
+	self.content:SetPoint( "TopLeft", self, "TopLeft", 15 * (m.width / width), -35 * (m.width / width) )
+	self.content:SetScale( scale )
+	self:SetWidth( width )
+	self:SetHeight( height )
+end
+
 function TurtleCalendar.reorder()
 	-- This really needs refactoring
 	local pos = 1
@@ -881,7 +933,7 @@ function TurtleCalendar.reorder()
 		if box_info[ 2 ] then
 			if i <= 5 then
 				if pos == 1 then
-					box:SetPoint( "TopLeft", m.popup, "TopLeft", 15, -35 )
+					box:SetPoint( "TopLeft", m.popup.content, "TopLeft", 0, 0 )
 					line1 = 1
 				else
 					box:SetPoint( "TopLeft", prev_box, "TopRight", 5, 0 )
@@ -889,7 +941,7 @@ function TurtleCalendar.reorder()
 				end
 			else
 				if not line2 then
-					box:SetPoint( "TopLeft", m.popup, "TopLeft", 15, -(35 + 222 + 5) )
+					box:SetPoint( "TopLeft", m.popup.content, "TopLeft", 0, -(222 + 5) )
 					line2 = 1
 				else
 					box:SetPoint( "TopLeft", prev_box, "TopRight", 5, 0 )
@@ -903,24 +955,24 @@ function TurtleCalendar.reorder()
 
 	if line2 then
 		if line1 then
-			m.popup:SetHeight( 460 )
+			m.height = 460
 			if line1 < 2 and line2 < 2 and m.db.boxes[ 8 ][ 2 ] then
-				m.popup:SetWidth( 1070 - 209 - 209 - 209 - 209 )
+				m.width = 1070 - 209 - 209 - 209 - 209
 			elseif line1 < 3 and line2 < 2 then
-				m.popup:SetWidth( 1070 - 209 - 209 - 209 )
+				m.width = 1070 - 209 - 209 - 209
 			elseif line1 < 5 and line2 < 3 then
 				if line1 < 4 and (line2 < 2 or m.db.boxes[ 8 ][ 2 ]) then
-					m.popup:SetWidth( 1070 - 209 - 209 )
+					m.width = 1070 - 209 - 209
 				else
-					m.popup:SetWidth( 1070 - 209 )
+					m.width = 1070 - 209
 				end
 			else
-				m.popup:SetWidth( 1070 )
+				m.width = 1070
 			end
 		end
 	else
-		m.popup:SetHeight( 460 - 189 )
-		m.popup:SetWidth( 25 + (line1 or 1) * 209 )
+		m.height = 460 - 189
+		m.width = 25 + (line1 or 1) * 209
 	end
 
 	if line1 == 4 and line2 == 2 and m.boxes.instances.is_visible then
@@ -938,6 +990,9 @@ function TurtleCalendar.reorder()
 			m.boxes.instances[ "inst" .. i .. "_name" ]:SetWidth( 135 )
 		end
 	end
+
+	m.popup:SetWidth( m.width * (m.db.scale or 1) )
+	m.on_resize()
 end
 
 function TurtleCalendar.show()
