@@ -265,6 +265,73 @@ function TurtleCalendar.reset_instances()
 	m.current_instance = nil
 end
 
+function TurtleCalendar.create_digit( parent, unit, size )
+	local height = size == 10 and 9 or 21
+	local width = size == 10 and 15 or 34
+
+	---@class DigitFrame: ScrollFrame
+	local scroll_frame = CreateFrame( "ScrollFrame", nil, parent )
+	scroll_frame:SetWidth( width )
+	scroll_frame:SetHeight( height )
+
+	local child_frame = CreateFrame( "Frame", nil, scroll_frame )
+	child_frame:SetPoint( "TopLeft", scroll_frame, "TopLeft", 0, 0 )
+	child_frame:SetWidth( width )
+	child_frame:SetHeight( height )
+	scroll_frame:SetScrollChild( child_frame )
+
+	local digit = child_frame:CreateFontString( nil, "OVERLAY" )
+	digit:SetFont( "Interface\\AddOns\\TurtleCalendar\\assets\\Monaco.ttf", size, "" )
+	digit:SetTextColor( 0.8, 0.8, 0.8, 1 )
+	digit:SetPoint( "TopLeft", child_frame, "TopLeft", 0, 0 )
+
+	local label = parent:CreateFontString( nil, "OVERLAY" )
+	label:SetFont( "Interface\\AddOns\\TurtleCalendar\\assets\\Monaco.ttf", 8, "" )
+	label:SetTextColor( 0.8, 0.8, 0.8, 1 )
+	label:SetPoint( "TopLeft", scroll_frame, "BottomLeft", 0, -4 )
+	label:SetText( unit )
+
+	scroll_frame:SetScript( "OnHide", function()
+		label:Hide()
+	end )
+	scroll_frame:SetScript( "OnShow", function()
+		label:Show()
+	end )
+
+	scroll_frame.set_digit = function( value )
+		local current = tonumber( digit:GetText() )
+		if current ~= value then
+			local fps = GetFramerate()
+			scroll_frame.new_value = value
+			scroll_frame:SetScript( "OnUpdate", function()
+				local max_h = size
+				local step = (size / 10) * (120 / fps)
+				if scroll_frame.new_value then
+					local _, _, _, _, top = child_frame:GetPoint()
+
+					if scroll_frame.new_value >= 0 then
+						child_frame:SetPoint( "TopLeft", scroll_frame, "TopLeft", 0, top - step )
+						if top <= -max_h then
+							digit:SetText( string.format( "%02d", scroll_frame.new_value ) )
+							child_frame:SetPoint( "TopLeft", scroll_frame, "TopLeft", 0, max_h )
+							scroll_frame.new_value = -1
+						end
+					elseif scroll_frame.new_value < 0 then
+						child_frame:SetPoint( "TopLeft", scroll_frame, "TopLeft", 0, top - step )
+						if top <= 0 then
+							scroll_frame.new_value = nil
+							child_frame:SetPoint( "TopLeft", scroll_frame, "TopLeft", 0, 0 )
+							scroll_frame:SetScript( "OnUpdate", nil )
+						end
+					end
+				end
+			end )
+		end
+	end
+
+	return scroll_frame
+end
+
 ---@param parent Frame
 ---@param data table
 ---@return BoxFrame
@@ -376,58 +443,17 @@ function TurtleCalendar.create_box( parent, data )
 		time:SetPoint( "Bottom", frame, "Bottom", 0, 35 )
 		frame.time = time
 
-		local days = time:CreateFontString( nil, "OVERLAY" )
-		days:SetFont( "Interface\\AddOns\\TurtleCalendar\\assets\\Monaco.ttf", 25, "" )
-		days:SetTextColor( 0.8, 0.8, 0.8, 1 )
-		days:SetPoint( "TopLeft", time, "TopLeft", 0, 0 )
-		frame.days = days
+		frame.days = m.create_digit( time, "days", 25 )
+		frame.days:SetPoint( "TopLeft", time, "TopLeft", 0, 0 )
 
-		local label_days = time:CreateFontString( nil, "OVERLAY" )
-		label_days:SetFont( "Interface\\AddOns\\TurtleCalendar\\assets\\Monaco.ttf", 8, "" )
-		label_days:SetTextColor( 0.8, 0.8, 0.8, 1 )
-		label_days:SetPoint( "Center", days, "Center", 0, 0 )
-		label_days:SetPoint( "Top", days, "Bottom", 0, 0 )
-		label_days:SetText( "days" )
-		frame.label_days = label_days
+		frame.hours = m.create_digit( time, "hours", 25 )
+		frame.hours:SetPoint( "BottomLeft", frame.days, "BottomRight", 10, 0 )
 
-		local hours = time:CreateFontString( nil, "OVERLAY" )
-		hours:SetFont( "Interface\\AddOns\\TurtleCalendar\\assets\\Monaco.ttf", 25, "" )
-		hours:SetTextColor( 0.8, 0.8, 0.8, 1 )
-		hours:SetPoint( "BottomLeft", days, "BottomRight", 15, 0 )
-		frame.hours = hours
+		frame.min = m.create_digit( time, "min", 25 )
+		frame.min:SetPoint( "BottomLeft", frame.hours, "BottomRight", 10, 0 )
 
-		local label_hours = time:CreateFontString( nil, "OVERLAY" )
-		label_hours:SetFont( "Interface\\AddOns\\TurtleCalendar\\assets\\Monaco.ttf", 8, "" )
-		label_hours:SetTextColor( 0.8, 0.8, 0.8, 1 )
-		label_hours:SetPoint( "Center", hours, "Center", 0, 0 )
-		label_hours:SetPoint( "Top", hours, "Bottom", 0, 0 )
-		label_hours:SetText( "hours" )
-		frame.label_hours = label_hours
-
-		local min = time:CreateFontString( nil, "OVERLAY" )
-		min:SetFont( "Interface\\AddOns\\TurtleCalendar\\assets\\Monaco.ttf", 25, "" )
-		min:SetTextColor( 0.8, 0.8, 0.8, 1 )
-		min:SetPoint( "BottomLeft", hours, "BottomRight", 15, 0 )
-		frame.min = min
-
-		local label_min = time:CreateFontString( nil, "OVERLAY" )
-		label_min:SetFont( "Interface\\AddOns\\TurtleCalendar\\assets\\Monaco.ttf", 8, "" )
-		label_min:SetTextColor( 0.8, 0.8, 0.8, 1 )
-		label_min:SetPoint( "Center", min, "Center", 0, 0 )
-		label_min:SetPoint( "Top", min, "Bottom", 0, 0 )
-		label_min:SetText( "min" )
-
-		local sec = time:CreateFontString( nil, "OVERLAY" )
-		sec:SetFont( "Interface\\AddOns\\TurtleCalendar\\assets\\Monaco.ttf", 10, "" )
-		sec:SetTextColor( 0.8, 0.8, 0.8, 1 )
-		sec:SetPoint( "BottomLeft", min, "BottomRight", 10, 0 )
-		frame.sec = sec
-
-		local label_sec = time:CreateFontString( nil, "OVERLAY" )
-		label_sec:SetFont( "Interface\\AddOns\\TurtleCalendar\\assets\\Monaco.ttf", 8, "" )
-		label_sec:SetTextColor( 0.8, 0.8, 0.8, 1 )
-		label_sec:SetPoint( "TopLeft", sec, "BottomLeft", 0, 0 )
-		label_sec:SetText( "sec" )
+		frame.sec = m.create_digit( time, "sec", 10 )
+		frame.sec:SetPoint( "BottomLeft", frame.min, "BottomRight", 10, 0 )
 
 		local date = frame:CreateFontString( nil, "OVERLAY" )
 		date:SetFont( "Interface\\AddOns\\TurtleCalendar\\assets\\Monaco.ttf", 12, "" )
@@ -728,26 +754,22 @@ function TurtleCalendar.on_update()
 				local sec_left = next - m.server_time
 				local days, hours, min, sec = m.seconds_dhms( sec_left )
 
-				box.days:SetText( string.format( "%02d", days ) )
-				box.hours:SetText( string.format( "%02d", hours ) )
-				box.min:SetText( string.format( "%02d", min ) )
-				box.sec:SetText( string.format( "%02d", sec ) )
+				box.days.set_digit( days )
+				box.hours.set_digit( hours )
+				box.min.set_digit( min )
+				box.sec.set_digit( sec )
 
 				box.time:SetPoint( "Center", box, "Center", 0, 0 )
 				box.days:Show()
-				box.label_days:Show()
 				box.hours:Show()
-				box.label_hours:Show()
 
 				if m.db.condensed_timers then
 					if days == 0 then
 						local offset = 25
 						box.days:Hide()
-						box.label_days:Hide()
 
 						if hours == 0 then
 							box.hours:Hide()
-							box.label_hours:Hide()
 							offset = offset + 25
 						end
 						box.time:SetPoint( "Center", box, "Center", -offset, 0 )
@@ -909,7 +931,7 @@ function TurtleCalendar.on_resize()
 	local width = math.max( min_width, math.min( max_width, self:GetWidth() ) )
 	local scale = (width - 30) / (m.width - 30)
 	local height = width * (m.height / m.width)
-	height = height + (20 * (m.height / height) )-20
+	height = height + (20 * (m.height / height)) - 20
 	m.db.scale = width / m.width
 
 	self.content:SetPoint( "TopLeft", self, "TopLeft", 15 * (m.width / width), -35 * (m.width / width) )
