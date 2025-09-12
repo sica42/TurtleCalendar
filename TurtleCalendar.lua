@@ -110,6 +110,8 @@ function TurtleCalendar.events.PLAYER_LOGIN()
 	m.db.instances = m.db.instances or {}
 	m.db.last_instance = m.db.last_instance or ""
 	m.db.date_format = m.db.date_format or "%d.%m.%Y"
+	if m.db.show_timers == nil then m.db.show_timers = true end
+	if m.db.show_dates == nil then m.db.show_dates = false end
 	m.db.minimap_icon = m.db.minimap_icon or { hide = false }
 	m.db.boxes = m.db.boxes or {
 		[ 1 ] = { "raid40", true },
@@ -267,7 +269,7 @@ end
 
 function TurtleCalendar.create_digit( parent, unit, size )
 	local height = size == 10 and 9 or 21
-	local width = size == 10 and 15 or 34
+	local width = size == 10 and 15 or 32
 
 	---@class DigitFrame: ScrollFrame
 	local scroll_frame = CreateFrame( "ScrollFrame", nil, parent )
@@ -457,8 +459,9 @@ function TurtleCalendar.create_box( parent, data )
 
 		local date = frame:CreateFontString( nil, "OVERLAY" )
 		date:SetFont( "Interface\\AddOns\\TurtleCalendar\\assets\\Monaco.ttf", 12, "" )
+		date:SetPoint( "Bottom", frame, "Bottom", 0, 15 )
 		date:SetPoint( "Center", frame, "Center", 0, 0 )
-		date:SetPoint( "Top", time, "Bottom", 0, -5 )
+		date:SetTextColor( 0.8, 0.8, 0.8, 1 )
 		frame.date = date
 	end
 
@@ -751,39 +754,35 @@ function TurtleCalendar.on_update()
 			local box = m.boxes[ k ]
 			if box and box.is_visible then
 				local next = m.next_raid( v )
-				local sec_left = next - m.server_time
-				local days, hours, min, sec = m.seconds_dhms( sec_left )
+				if m.db.show_timers then
+					local sec_left = next - m.server_time
+					local days, hours, min, sec = m.seconds_dhms( sec_left )
 
-				box.days.set_digit( days )
-				box.hours.set_digit( hours )
-				box.min.set_digit( min )
-				box.sec.set_digit( sec )
+					box.days.set_digit( days )
+					box.hours.set_digit( hours )
+					box.min.set_digit( min )
+					box.sec.set_digit( sec )
 
-				box.time:SetPoint( "Center", box, "Center", 0, 0 )
-				box.days:Show()
-				box.hours:Show()
+					box.time:SetPoint( "Center", box, "Center", 0, 0 )
+					box.days:Show()
+					box.hours:Show()
 
-				if m.db.condensed_timers then
-					if days == 0 then
-						local offset = 25
-						box.days:Hide()
+					if m.db.condensed_timers then
+						if days == 0 then
+							local offset = 20
+							box.days:Hide()
 
-						if hours == 0 then
-							box.hours:Hide()
-							offset = offset + 25
+							if hours == 0 then
+								box.hours:Hide()
+								offset = offset + 19
+							end
+							box.time:SetPoint( "Center", box, "Center", -offset, 0 )
 						end
-						box.time:SetPoint( "Center", box, "Center", -offset, 0 )
 					end
 				end
 
 				if m.db.show_dates then
-					box.date:Show()
 					box.date:SetText( date( m.db.date_format, time( date( "*t", next + m.time_offset ) ) ) )
-				else
-					box.date:Hide()
-				end
-				if box.data.id == "bg" then
-					box.time:SetPoint( "Bottom", box, "Bottom", 0, m.db.show_dates and 65 or 55 )
 				end
 			end
 		end
@@ -837,6 +836,28 @@ function TurtleCalendar.refresh()
 					box.inst_id:SetText( (box.inst_id:GetText() or "") .. m.instances[ k ].id .. "\n" )
 				end
 			end
+		end
+	end
+
+	for k in pairs( m.timers[ m.realm ] ) do
+		---@type BoxFrame
+		local box = m.boxes[ k ]
+		if m.db.show_timers then box.time:Show() else box.time:Hide() end
+		if m.db.show_dates then
+			box.date:Show()
+			if m.db.show_timers then
+				box.date:SetPoint( "Bottom", box, "Bottom", 0, 15 )
+				box.date:SetFont( "Interface\\AddOns\\TurtleCalendar\\assets\\Monaco.ttf", 12, "" )
+			else
+				box.date:SetPoint( "Bottom", box, "Bottom", 0, 60 )
+				box.date:SetFont( "Interface\\AddOns\\TurtleCalendar\\assets\\Monaco.ttf", 22, "" )
+			end
+		else
+			box.date:Hide()
+		end
+		if box.data.id == "bg" then
+			box.date:SetPoint( "Bottom", box, "Bottom", 0, m.db.show_timers and 48 or 65 )
+			box.time:SetPoint( "Bottom", box, "Bottom", 0, m.db.show_dates and 65 or 55 )
 		end
 	end
 
@@ -899,11 +920,22 @@ function TurtleCalendar.popup_initialize()
 		end
 	} )
 	UIDropDownMenu_AddButton( {
+		text = "Show timers",
+		keepShownOnClick = 1,
+		checked = m.db.show_timers,
+		func = function()
+			m.db.show_timers = not this.checked
+			m.refresh()
+			m.delta = 1
+		end
+	} )
+	UIDropDownMenu_AddButton( {
 		text = "Show dates",
 		keepShownOnClick = 1,
-		checked = m.db.show_dates or false,
+		checked = m.db.show_dates,
 		func = function()
 			m.db.show_dates = not this.checked
+			m.refresh()
 			m.delta = 1
 		end
 	} )
