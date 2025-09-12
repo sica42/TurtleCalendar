@@ -130,6 +130,12 @@ function TurtleCalendar.events.PLAYER_LOGIN()
 	m.realm = GetRealmName()
 	m.api = getfenv()
 
+	-- TEMPORARY
+	-- Fallback to Nordanaar if unknown realm.
+	if m.realm ~= "Nordanaar" and m.realm ~= "Tel'Abim" and m.realm ~= "Ambershire" then
+		m.realm = "Nordanaar"
+	end
+
 	---@class MinimapIcon
 	m.minimap_icon = m.MinimapIcon.new()
 
