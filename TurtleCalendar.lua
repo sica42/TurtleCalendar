@@ -124,6 +124,7 @@ function TurtleCalendar.events.PLAYER_LOGIN()
 		[ 8 ] = { "instances", true }
 	}
 
+	m.frame_padding = 15
 	m.time_offset = 3600
 	m.delta = 1
 	m.first = true
@@ -142,6 +143,15 @@ function TurtleCalendar.events.PLAYER_LOGIN()
 	m.api[ "SLASH_TurtleCalendar1" ] = "/tc"
 	m.api[ "SLASH_TurtleCalendar2" ] = "/TurtleCalendar"
 	SlashCmdList[ "TurtleCalendar" ] = m.slashHandler
+
+	if m.api.IsAddOnLoaded( "pfUI" ) and m.api.pfUI and m.api.pfUI.api and m.api.pfUI.env and m.api.pfUI.env.C then
+		m.pfui_skin_enabled = true
+		m.api.pfUI:RegisterSkin( "TurtleCalendar", "vanilla", function()
+			if m.api.pfUI.env.C.disabled and m.api.pfUI.env.C.disabled[ "skin_TurtleCalendar" ] == "1" then
+				m.pfui_skin_enabled = false
+			end
+		end )
+	end
 
 	m.version = GetAddOnMetadata( m.name, "Version" )
 	m.info( string.format( "(v%s) Loaded", m.version ) )
@@ -579,29 +589,34 @@ function TurtleCalendar.create_frame()
 	end
 
 	-- Title bar
+	---@class TitlebarFrame: Frame
 	local title_bar = CreateFrame( "Frame", nil, frame )
 	title_bar:SetPoint( "TopLeft", frame, "TopLeft", 11, -11 )
 	title_bar:SetPoint( "BottomRight", frame, "TopRight", -11, -31 )
 	title_bar:SetBackdrop( { bgFile = "Interface/Buttons/WHITE8x8" } )
 	title_bar:SetBackdropColor( 0, 0, 0, 1 )
+	frame.title_bar = title_bar
 
 	local line1 = CreateFrame( "Frame", nil, title_bar )
 	line1:SetPoint( "TopLeft", title_bar, "BottomLeft", 0, 2 )
 	line1:SetPoint( "BottomRight", title_bar, "BottomRight", 0, 1 )
 	line1:SetBackdrop( { bgFile = "Interface/Buttons/WHITE8x8" } )
 	line1:SetBackdropColor( 0.6, 0.6, 0.6, 1 )
+	title_bar.line1 = line1
 
 	local line2 = CreateFrame( "Frame", nil, title_bar )
 	line2:SetPoint( "TopLeft", title_bar, "BottomLeft", 0, 1 )
 	line2:SetPoint( "BottomRight", title_bar, "BottomRight", 0, 0 )
 	line2:SetBackdrop( { bgFile = "Interface/Buttons/WHITE8x8" } )
 	line2:SetBackdropColor( 0.3, 0.3, 0.3, 1 )
+	title_bar.line2 = line2
 
 	local btn_close = CreateFrame( "Button", nil, title_bar, "UIPanelCloseButton" )
 	btn_close:SetPoint( "TopRight", title_bar, "TopRight", 7, 7 )
 	btn_close:SetScript( "OnClick", function()
 		m.hide()
 	end )
+	title_bar.btn_close = btn_close
 
 	local title = title_bar:CreateFontString( nil, "OVERLAY", "GameFontHighlight" )
 	title:SetPoint( "Left", title_bar, "Left", 7, 1 )
@@ -708,8 +723,8 @@ function TurtleCalendar.create_frame()
 	} )
 	m.boxes.instances:SetPoint( "TopLeft", m.boxes.dmf, "TopRight", 5, 0 )
 
-	local resize_grip = m.resize_grip( frame )
-	resize_grip:SetPoint( "BottomRight", frame, "BottomRight", -6, 6 )
+	frame.resize_grip = m.resize_grip( frame )
+	frame.resize_grip:SetPoint( "BottomRight", frame, "BottomRight", -6, 6 )
 
 	frame:SetScript( "OnUpdate", m.on_update )
 	frame:SetScript( "OnShow", function()
@@ -720,6 +735,7 @@ function TurtleCalendar.create_frame()
 	m.popup_frame = CreateFrame( "Frame", "TurtleCalendarDropDown", frame, "UIDropDownMenuTemplate" )
 	m.popup_frame.initialize = m.popup_initialize
 
+	m.pfui_skin( frame )
 	return frame
 end
 
@@ -967,12 +983,12 @@ function TurtleCalendar.on_resize()
 	local self = m.popup
 	local min_width, max_width = m.width / 1.7, m.width
 	local width = math.max( min_width, math.min( max_width, self:GetWidth() ) )
-	local scale = (width - 30) / (m.width - 30)
+	local scale = (width - (m.frame_padding * 2)) / (m.width - (m.frame_padding * 2))
 	local height = width * (m.height / m.width)
 	height = height + (20 * (m.height / height)) - 20
 	m.db.scale = width / m.width
 
-	self.content:SetPoint( "TopLeft", self, "TopLeft", 15 * (m.width / width), -35 * (m.width / width) )
+	self.content:SetPoint( "TopLeft", self, "TopLeft", m.frame_padding * (m.width / width), -(20 + m.frame_padding) * (m.width / width) )
 	self.content:SetScale( scale )
 	self:SetWidth( width )
 	self:SetHeight( height )
@@ -1051,6 +1067,8 @@ function TurtleCalendar.reorder()
 		end
 	end
 
+	m.width = m.width - 30 + (m.frame_padding * 2)
+	m.height = m.height - 30 + (m.frame_padding * 2)
 	m.popup:SetWidth( m.width * (m.db.scale or 1) )
 	m.on_resize()
 end
@@ -1200,6 +1218,29 @@ function TurtleCalendar.count( t )
 	end
 
 	return count
+end
+
+function TurtleCalendar.pfui_skin( frame )
+	if not m.pfui_skin_enabled then return end
+
+	m.frame_padding = 8
+
+	m.api.pfUI.api.StripTextures( frame, nil, "BACKGROUND" )
+	m.api.pfUI.api.CreateBackdrop( frame, nil, true, 0.8 )
+
+	frame.title_bar:SetPoint( "TopLeft", frame, "TopLeft", 2, -2 )
+	frame.title_bar:SetPoint( "BottomRight", frame, "TopRight", -2, -22 )
+	m.api.pfUI.api.SkinCloseButton( frame.title_bar.btn_close, frame.title_bar, -1, -1 )
+
+	local rr, rg, rb, ra = m.api.pfUI.api.GetStringColor( m.api.pfUI_config.appearance.border.color )
+	frame.title_bar.line1:SetBackdropColor( rr, rg, rb, ra )
+	frame.title_bar.line2:Hide()
+
+	for _, box in pairs( m.boxes ) do
+		m.api.pfUI.api.StripTextures( box, nil, "BORDER" )
+	end
+
+	frame.resize_grip:SetPoint( "BottomRight", frame, "BottomRight", 2, -2 )
 end
 
 TurtleCalendar:init()
