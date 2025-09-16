@@ -7,6 +7,7 @@ Shows you an in-game calendar with all relevant timers:
 * Battleground of the day
 * Darkmoon Faire location
 * Instances lockout timers
+* World buffs timers
 
 Use `/turtlecalendar` or `/tc` to toggle calendar, or assign a hotkey in key bindings.
 
