@@ -4,13 +4,26 @@ TurtleCalendar = TurtleCalendar or {}
 ---@class TurtleCalendar
 local m = TurtleCalendar
 
-BINDING_HEADER_TURTLECALENDAR_HEADER = "Turtle Calendar"
-BINDING_NAME_TURTLECALENDAR_OPENMENU = "Toggle the calendar"
+BINDING_HEADER_TURTLECALENDAR_HEADER = "TurtleCalendar"
+BINDING_NAME_TURTLECALENDAR_OPENMENU = m.T[ "Toggle the calendar" ]
 
 TurtleCalendar.name = "TurtleCalendar"
-TurtleCalendar.tagcolor = "FF4E8A00"
 TurtleCalendar.events = {}
 TurtleCalendar.debug_enabled = false
+
+TurtleCalendar.colors = {
+	tag = "|cff4e8a00",
+	pizza = "|cffa050ff",
+
+	alliance = "|cff0070dd",
+	horde = "|cffc41e3a",
+	white = "|cffffffff",
+	grey = "|cffaaaaaa",
+	green = "|cff00ff98",
+	orange = "|cffff7c0a",
+	red = "|cffc41e3a",
+	yellow = "|cffdddd00"
+}
 
 TurtleCalendar.images = {
 	[ "bwl" ] = { image = "Interface\\AddOns\\TurtleCalendar\\assets\\bwl.blp", height = 276 / 512 },
@@ -20,8 +33,8 @@ TurtleCalendar.images = {
 	[ "eom" ] = { image = "Interface\\AddOns\\TurtleCalendar\\assets\\eom.blp", height = 276 / 512 },
 	[ "instances" ] = { image = "Interface\\AddOns\\TurtleCalendar\\assets\\instances.blp", height = 276 / 512 },
 	[ "instances2" ] = { image = "Interface\\AddOns\\TurtleCalendar\\assets\\instances2.blp", height = 208 / 256 },
-	[ "Thunder Bluff" ] = { image = "Interface\\AddOns\\TurtleCalendar\\assets\\dmf_tb.blp", height = 228 / 256 },
-	[ "Goldshire" ] = { image = "Interface\\AddOns\\TurtleCalendar\\assets\\dmf_gs.blp", height = 228 / 256 },
+	[ "Thunder Bluff" ] = { image = "Interface\\AddOns\\TurtleCalendar\\assets\\dmf_tb.blp", height = 229 / 256 },
+	[ "Goldshire" ] = { image = "Interface\\AddOns\\TurtleCalendar\\assets\\dmf_gs.blp", height = 229 / 256 },
 	[ "bg_av" ] = { image = "Interface\\AddOns\\TurtleCalendar\\assets\\bg_av.blp", height = 208 / 256 },
 	[ "bg_wg" ] = { image = "Interface\\AddOns\\TurtleCalendar\\assets\\bg_wg.blp", height = 208 / 256 },
 	[ "bg_arathi" ] = { image = "Interface\\AddOns\\TurtleCalendar\\assets\\bg_arathi.blp", height = 208 / 256 },
@@ -34,30 +47,30 @@ TurtleCalendar.images = {
 }
 
 TurtleCalendar.bgs = {
-	[ 1 ] = { id = "av", name = "Alterac Valley" },
-	[ 2 ] = { id = "wg", name = "Warsong Gulch" },
-	[ 3 ] = { id = "arathi", name = "Arathi Basin" },
-	[ 4 ] = { id = "bra", name = "Blood Ring Arena" },
-	[ 5 ] = { id = "sgv", name = "Sunnyglade Valley" }
+	[ 1 ] = { id = "av", name = m.T[ "Alterac Valley" ] },
+	[ 2 ] = { id = "wg", name = m.T[ "Warsong Gulch" ] },
+	[ 3 ] = { id = "arathi", name = m.T[ "Arathi Basin" ] },
+	[ 4 ] = { id = "bra", name = m.T[ "Blood Ring Arena" ] },
+	[ 5 ] = { id = "sgv", name = m.T[ "Sunnyglade Valley" ] }
 }
 
 TurtleCalendar.eom = {
-	[ 1 ] = { id = "grilek", name = "Gri'lek" },
-	[ 2 ] = { id = "hazzarah", name = "Hazza'rah" },
-	[ 3 ] = { id = "renataki", name = "Renataki" },
-	[ 4 ] = { id = "wushoolay", name = "Wushoolay" }
+	[ 1 ] = { id = "grilek", name = m.T[ "Gri'lek" ] },
+	[ 2 ] = { id = "hazzarah", name = m.T[ "Hazza'rah" ] },
+	[ 3 ] = { id = "renataki", name = m.T[ "Renataki" ] },
+	[ 4 ] = { id = "wushoolay", name = m.T[ "Wushoolay" ] }
 }
 
 TurtleCalendar.raids = {
-	[ "Molten Core" ] = "raid40",
-	[ "Blackwing Lair" ] = "raid40",
-	[ "Ahn'Qiraj Temple" ] = "raid40",
-	[ "Naxxramas" ] = "raid40",
-	[ "Emerald Sanctum" ] = "raid40",
-	[ "Onyxia's Lair" ] = "ony",
-	[ "Lower Karazhan Halls" ] = "kara",
-	[ "Zul'Gurub" ] = "zg",
-	[ "Ruins of Ahn'Qiraj" ] = "zg",
+	[ m.T[ "Molten Core" ] ] = "raid40",
+	[ m.T[ "Blackwing Lair" ] ] = "raid40",
+	[ m.T[ "Ahn'Qiraj Temple" ] ] = "raid40",
+	[ m.T[ "Naxxramas" ] ] = "raid40",
+	[ m.T[ "Emerald Sanctum" ] ] = "raid40",
+	[ m.T[ "Onyxia's Lair" ] ] = "ony",
+	[ m.T[ "Lower Karazhan Halls" ] ] = "kara",
+	[ m.T[ "Zul'Gurub" ] ] = "zg",
+	[ m.T[ "Ruins of Ahn'Qiraj" ] ] = "zg",
 }
 
 TurtleCalendar.timers = {
@@ -112,6 +125,10 @@ function TurtleCalendar.events.PLAYER_LOGIN()
 	m.db.date_format = m.db.date_format or "%d.%m.%Y"
 	if m.db.show_timers == nil then m.db.show_timers = true end
 	if m.db.show_dates == nil then m.db.show_dates = false end
+	if m.db.condensed_timers == nil then m.db.condensed_timers = false end
+	if m.db.show_world_buffs == nil then m.db.show_world_buffs = true end
+	if m.db.show_sw_buffs == nil then m.db.show_sw_buffs = true end
+	if m.db.show_og_buffs == nil then m.db.show_og_buffs = true end
 	m.db.minimap_icon = m.db.minimap_icon or { hide = false }
 	m.db.boxes = m.db.boxes or {
 		[ 1 ] = { "raid40", true },
@@ -131,14 +148,34 @@ function TurtleCalendar.events.PLAYER_LOGIN()
 	m.realm = GetRealmName()
 	m.api = getfenv()
 
-	-- TEMPORARY
-	-- Fallback to Nordanaar if unknown realm.
-	if m.realm ~= "Nordanaar" and m.realm ~= "Tel'Abim" and m.realm ~= "Ambershire" then
-		m.realm = "Nordanaar"
-	end
-
 	---@class MinimapIcon
 	m.minimap_icon = m.MinimapIcon.new()
+
+	---@class WorldBuffs
+	m.world_buffs = m.WorldBuffs.new( m.db.wb_timers )
+
+	m.font_header = CreateFont( "TCFontHeader" )
+	m.font_header:SetFont( "Interface\\AddOns\\TurtleCalendar\\assets\\AoboshiOne.ttf", 25, "" )
+	m.font_medium = CreateFont( "TCFontMedium" )
+	m.font_medium:SetFont( "Interface\\AddOns\\TurtleCalendar\\assets\\AoboshiOne.ttf", 12, "" )
+	m.font_normal = CreateFont( "TCFontNormal" )
+	m.font_normal:SetFont( "Interface\\AddOns\\TurtleCalendar\\assets\\AoboshiOne.ttf", 11, "" )
+	m.font_small = CreateFont( "TCFontSmall" )
+	m.font_small:SetFont( "Interface\\AddOns\\TurtleCalendar\\assets\\AoboshiOne.ttf", 10, "" )
+	m.font_tiny = CreateFont( "TCFontTiny" )
+	m.font_tiny:SetFont( "Interface\\AddOns\\TurtleCalendar\\assets\\AoboshiOne.ttf", 9, "" )
+	m.font_digit_label = CreateFont( "TCFontDigitLabel" )
+	m.font_digit_label:SetFont( "Interface\\AddOns\\TurtleCalendar\\assets\\Monaco.ttf", 8, "" )
+
+	local locale = GetLocale() or "enUS"
+	if locale == "zhCN" or locale == "zhTW" then
+		m.font_header:SetFont( "Fonts\\ARHei.ttf", 25, "" )
+		m.font_medium:SetFont( "Fonts\\ARHei.ttf", 12, "" )
+		m.font_normal:SetFont( "Fonts\\ARHei.ttf", 11, "" )
+		m.font_small:SetFont( "Fonts\\ARHei.ttf", 10, "" )
+		m.font_tiny:SetFont( "Fonts\\ARHei.ttf", 9, "" )
+		m.font_digit_label:SetFont( "Fonts\\ARHei.ttf", 8, "" )
+	end
 
 	m.api[ "SLASH_TurtleCalendar1" ] = "/tc"
 	m.api[ "SLASH_TurtleCalendar2" ] = "/TurtleCalendar"
@@ -155,6 +192,13 @@ function TurtleCalendar.events.PLAYER_LOGIN()
 
 	m.version = GetAddOnMetadata( m.name, "Version" )
 	m.info( string.format( "(v%s) Loaded", m.version ) )
+
+	-- TEMPORARY
+	-- Fallback to Nordanaar if unknown realm.
+	if m.realm ~= "Nordanaar" and m.realm ~= "Tel'Abim" and m.realm ~= "Ambershire" then
+		m.info( "Raid timers for " .. m.realm .. " not found, using Nordanaar timers." )
+		m.realm = "Nordanaar"
+	end
 end
 
 function TurtleCalendar.events.PLAYER_ENTERING_WORLD()
@@ -303,8 +347,7 @@ function TurtleCalendar.create_digit( parent, unit, size )
 	digit:SetTextColor( 0.8, 0.8, 0.8, 1 )
 	digit:SetPoint( "TopLeft", child_frame, "TopLeft", 0, 0 )
 
-	local label = parent:CreateFontString( nil, "OVERLAY" )
-	label:SetFont( "Interface\\AddOns\\TurtleCalendar\\assets\\Monaco.ttf", 8, "" )
+	local label = parent:CreateFontString( nil, "OVERLAY", "TCFontDigitLabel" )
 	label:SetTextColor( 0.8, 0.8, 0.8, 1 )
 	label:SetPoint( "TopLeft", scroll_frame, "BottomLeft", 0, -4 )
 	label:SetText( unit )
@@ -374,13 +417,15 @@ function TurtleCalendar.create_box( parent, data )
 	} )
 	frame:SetBackdropColor( 0, 0, 0, 1 )
 
-	local bg = frame:CreateTexture( nil, "ARTWORK" )
-	bg:SetPoint( "TopLeft", frame, "TopLeft", 4, -4 )
-	bg:SetPoint( "BottomRight", frame, "BottomRight", -4, 4 )
-	bg:SetTexture( data.background.image )
-	bg:SetTexCoord( 0, 1, 0, data.background.height )
-	bg:SetVertexColor( 1, 1, 1, 0.5 )
-	frame.bg = bg
+	if data.id ~= "wbuffs" then
+		local bg = frame:CreateTexture( nil, "ARTWORK" )
+		bg:SetPoint( "TopLeft", frame, "TopLeft", 4, -4 )
+		bg:SetPoint( "BottomRight", frame, "BottomRight", -4, 4 )
+		bg:SetTexture( data.background.image )
+		bg:SetTexCoord( 0, 1, 0, data.background.height )
+		bg:SetVertexColor( 1, 1, 1, 0.5 )
+		frame.bg = bg
+	end
 
 	if data.id == "eom" then
 		local mob = frame:CreateTexture( nil, "OVERLAY" )
@@ -392,17 +437,15 @@ function TurtleCalendar.create_box( parent, data )
 		frame.mob = mob
 	end
 
-	local header = frame:CreateFontString( nil, "OVERLAY" )
+	local header = frame:CreateFontString( nil, "OVERLAY", "TCFontHeader" )
 	header:SetPoint( "Center", frame, "Center", 0, 0 )
 	header:SetPoint( "Top", frame, "Top", 0, -20 )
-	header:SetFont( "Interface\\AddOns\\TurtleCalendar\\assets\\AoboshiOne.ttf", 25, "" )
 	header:SetText( data.header )
 	frame.header = header
 
 	if data.id == "instances" then
 		for i = 1, 5 do
-			local name = frame:CreateFontString( nil, "OVERLAY" )
-			name:SetFont( "Interface\\AddOns\\TurtleCalendar\\assets\\AoboshiOne.ttf", 11, "" )
+			local name = frame:CreateFontString( nil, "OVERLAY", "TCFontNormal" )
 			name:SetPoint( "TopLeft", frame, "TopLeft", 10, -40 - (i * 20) )
 			name:SetWidth( 135 )
 			name:SetHeight( 15 )
@@ -417,38 +460,42 @@ function TurtleCalendar.create_box( parent, data )
 		end
 	end
 
-	local sub1 = frame:CreateFontString( nil, "OVERLAY" )
-	sub1:SetFont( "Interface\\AddOns\\TurtleCalendar\\assets\\AoboshiOne.ttf", 11, "" )
+	local sub1 = frame:CreateFontString( nil, "OVERLAY", "TCFontNormal" )
 	sub1:SetPoint( "Center", frame, "Center", 0, 0 )
 	sub1:SetPoint( "Top", header, "Bottom", 0, -5 )
 	sub1:SetText( data.sub1 or " " )
 	frame.sub1 = sub1
 
-	local sub2 = frame:CreateFontString( nil, "OVERLAY" )
-	sub2:SetFont( "Interface\\AddOns\\TurtleCalendar\\assets\\AoboshiOne.ttf", 10, "" )
+	local sub2 = frame:CreateFontString( nil, "OVERLAY", "TCFontSmall" )
 	sub2:SetTextColor( 0.8, 0.8, 0.8, 1 )
 	sub2:SetPoint( "Center", frame, "Center", 0, 0 )
 	sub2:SetPoint( "Top", sub1, "Bottom", 0, -5 )
 	sub2:SetText( data.sub2 )
 	frame.sub2 = sub2
 
-	if data.id ~= "instances" then
-		local sub3 = frame:CreateFontString( nil, "OVERLAY" )
-		sub3:SetFont( "Interface\\AddOns\\TurtleCalendar\\assets\\AoboshiOne.ttf", 10, "" )
+	if data.id == "wbuffs" then
+		sub1:SetPoint( "Top", frame, "Top", 0, -10 )
+		sub2:ClearAllPoints()
+		sub2:SetPoint( "Right", frame, "Right", -10, 0 )
+		sub2:SetPoint( "Top", frame, "Top", 0, -10 )
+		sub2:SetFontObject( m.font_tiny )
+		--sub2:SetFont( "Interface\\AddOns\\TurtleCalendar\\assets\\AoboshiOne.ttf", 9, "" )
+	end
+
+	if data.id ~= "instances" and data.id ~= "wbuffs" then
+		local sub3 = frame:CreateFontString( nil, "OVERLAY", "TCFontSmall" )
 		sub3:SetTextColor( 0.8, 0.8, 0.8, 1 )
 		sub3:SetPoint( "Center", frame, "Center", 0, 0 )
 		sub3:SetPoint( "Top", sub2, "Bottom", 0, -5 )
 		frame.sub3 = sub3
 
-		local inst_name = frame:CreateFontString( nil, "OVERLAY" )
-		inst_name:SetFont( "Interface\\AddOns\\TurtleCalendar\\assets\\AoboshiOne.ttf", 10, "" )
+		local inst_name = frame:CreateFontString( nil, "OVERLAY", "TCFontSmall" )
 		inst_name:SetTextColor( 0.8, 0.8, 0.8, 1 )
 		inst_name:SetPoint( "TopLeft", frame, "TopLeft", 30, -90 )
 		inst_name:SetJustifyH( "Left" )
 		frame.inst_name = inst_name
 
-		local inst_id = frame:CreateFontString( nil, "OVERLAY" )
-		inst_id:SetFont( "Interface\\AddOns\\TurtleCalendar\\assets\\AoboshiOne.ttf", 10, "" )
+		local inst_id = frame:CreateFontString( nil, "OVERLAY", "TCFontSmall" )
 		inst_id:SetTextColor( 0.8, 0.8, 0, 1 )
 		inst_id:SetPoint( "TopRight", frame, "TopRight", -30, -90 )
 		inst_id:SetJustifyH( "Right" )
@@ -461,16 +508,16 @@ function TurtleCalendar.create_box( parent, data )
 		time:SetPoint( "Bottom", frame, "Bottom", 0, 35 )
 		frame.time = time
 
-		frame.days = m.create_digit( time, "days", 25 )
+		frame.days = m.create_digit( time, m.T[ "days" ], 25 )
 		frame.days:SetPoint( "TopLeft", time, "TopLeft", 0, 0 )
 
-		frame.hours = m.create_digit( time, "hours", 25 )
+		frame.hours = m.create_digit( time, m.T[ "hours" ], 25 )
 		frame.hours:SetPoint( "BottomLeft", frame.days, "BottomRight", 10, 0 )
 
-		frame.min = m.create_digit( time, "min", 25 )
+		frame.min = m.create_digit( time, m.T[ "min" ], 25 )
 		frame.min:SetPoint( "BottomLeft", frame.hours, "BottomRight", 10, 0 )
 
-		frame.sec = m.create_digit( time, "sec", 10 )
+		frame.sec = m.create_digit( time, m.T[ "sec" ], 10 )
 		frame.sec:SetPoint( "BottomLeft", frame.min, "BottomRight", 10, 0 )
 
 		local date = frame:CreateFontString( nil, "OVERLAY" )
@@ -482,7 +529,7 @@ function TurtleCalendar.create_box( parent, data )
 	end
 
 	if data.id == "bg" then
-		bg:SetPoint( "BottomRight", frame, "BottomRight", -4, 45 )
+		frame.bg:SetPoint( "BottomRight", frame, "BottomRight", -4, 45 )
 		frame.time:SetPoint( "Bottom", frame, "Bottom", 0, 65 )
 
 		local next_bg = frame:CreateTexture( nil, "ARTWORK" )
@@ -492,8 +539,7 @@ function TurtleCalendar.create_box( parent, data )
 		next_bg:SetVertexColor( 1, 1, 1, 0.2 )
 		frame.next_bg = next_bg
 
-		local next_day = frame:CreateFontString( nil, "OVERLAY" )
-		next_day:SetFont( "Interface\\AddOns\\TurtleCalendar\\assets\\AoboshiOne.ttf", 12, "" )
+		local next_day = frame:CreateFontString( nil, "OVERLAY", "TCFontMedium" )
 		next_day:SetPoint( "Center", frame, "Center", 0, 0 )
 		next_day:SetPoint( "Bottom", frame, "Bottom", 0, 20 )
 		frame.next_day = next_day
@@ -501,28 +547,30 @@ function TurtleCalendar.create_box( parent, data )
 
 	frame:SetScript( "OnMouseDown", m.popup_menu )
 
-	frame.alpha = 0.4
-	frame:SetScript( "OnEnter", function()
-		local a = frame.alpha
-		frame:SetScript( "OnUpdate", function()
-			a = a + 0.01
-			bg:SetVertexColor( 1, 1, 1, a )
-			if a >= frame.alpha + 0.1 then
-				frame:SetScript( "OnUpdate", nil )
-			end
+	if frame.bg then
+		frame.alpha = 0.5
+		frame:SetScript( "OnEnter", function()
+			local a = frame.alpha
+			frame:SetScript( "OnUpdate", function()
+				a = a + 0.01
+				frame.bg:SetVertexColor( 1, 1, 1, a )
+				if a >= frame.alpha + 0.1 then
+					frame:SetScript( "OnUpdate", nil )
+				end
+			end )
 		end )
-	end )
 
-	frame:SetScript( "OnLeave", function()
-		local a = frame.alpha + 0.1
-		frame:SetScript( "OnUpdate", function()
-			a = a - 0.01
-			bg:SetVertexColor( 1, 1, 1, a )
-			if a <= frame.alpha then
-				frame:SetScript( "OnUpdate", nil )
-			end
+		frame:SetScript( "OnLeave", function()
+			local a = frame.alpha + 0.1
+			frame:SetScript( "OnUpdate", function()
+				a = a - 0.01
+				frame.bg:SetVertexColor( 1, 1, 1, a )
+				if a <= frame.alpha then
+					frame:SetScript( "OnUpdate", nil )
+				end
+			end )
 		end )
-	end )
+	end
 
 	frame.set_visibility = function( visible )
 		frame.is_visible = visible
@@ -631,24 +679,36 @@ function TurtleCalendar.create_frame()
 	local bw, bh = 204, 222
 	m.boxes = {}
 
+	m.boxes.wbuffs = m.create_box( content, {
+		id = "wbuffs",
+		name = "World buffs",
+		background = m.images[ "wb_stormwind" ],
+		sub1 = "",
+		sub2 = m.T[ "Powered by " ] .. m.colors.pizza .. "Pizza" .. m.colors.white .. "WorldBuffs|r",
+		width = 413,
+		height = 30
+	} )
+	m.boxes.wbuffs:SetPoint( "TopLeft", content, "TopLeft", 0, 0 )
+	m.boxes.wbuffs:SetPoint( "Right", content, "Right", -15, 0 )
+
 	m.boxes.raid40 = m.create_box( content, {
 		id = "raid40",
-		name = "Raid 40",
+		name = m.T[ "Raid" ] .. " 40",
 		background = m.images[ "bwl" ],
-		header = "Raid 40",
+		header = m.T[ "Raid" ] .. " 40",
 		sub1 = "MC/BWL/AQ40/Naxx/ES",
-		sub2 = "Resets every 7 days",
+		sub2 = string.format( m.T[ "Resets every %d days" ], 7 ),
 		width = bw,
 		height = bh
 	} )
-	m.boxes.raid40:SetPoint( "TopLeft", content, "TopLeft", 0, 0 )
+	m.boxes.raid40:SetPoint( "TopLeft", content, "TopLeft", 0, -128 - 5 )
 
 	m.boxes.ony = m.create_box( content, {
 		id = "ony",
-		name = "Onyxia",
+		name = m.T[ "Onyxia" ],
 		background = m.images[ "ony" ],
-		header = "Onyxia",
-		sub2 = "Resets every 5 days",
+		header = m.T[ "Onyxia" ],
+		sub2 = string.format( m.T[ "Resets every %d days" ], 5 ),
 		width = bw,
 		height = bh
 	} )
@@ -656,10 +716,10 @@ function TurtleCalendar.create_frame()
 
 	m.boxes.kara = m.create_box( content, {
 		id = "kara",
-		name = "Karazhan",
+		name = m.T[ "Karazhan" ],
 		background = m.images[ "kara" ],
-		header = "Karazhan",
-		sub2 = "Resets every 5 days",
+		header = m.T[ "Karazhan" ],
+		sub2 = string.format( m.T[ "Resets every %d days" ], 5 ),
 		width = bw,
 		height = bh
 	} )
@@ -667,11 +727,11 @@ function TurtleCalendar.create_frame()
 
 	m.boxes.zg = m.create_box( content, {
 		id = "zg",
-		name = "Raid 20",
+		name = m.T[ "Raid" ] .. " 20",
 		background = m.images[ "zg" ],
-		header = "Raid 20",
+		header = m.T[ "Raid" ] .. " 20",
 		sub1 = "ZG/AQ20",
-		sub2 = "Resets every 3 days",
+		sub2 = string.format( m.T[ "Resets every %d days" ], 3 ),
 		width = bw,
 		height = bh
 	} )
@@ -679,11 +739,11 @@ function TurtleCalendar.create_frame()
 
 	m.boxes.eom = m.create_box( content, {
 		id = "eom",
-		name = "Edge of Madness",
+		name = m.T[ "Edge of Madness" ],
 		background = m.images[ "eom" ],
 		header = "Boss",
-		sub1 = "Zul'Gurub Edge of Madness",
-		sub2 = "Resets every 14 days",
+		sub1 = m.T[ "Zul'Gurub" ] .. " " .. m.T[ "Edge of Madness" ],
+		sub2 = string.format( m.T[ "Resets every %d days" ], 14 ),
 		width = bw,
 		height = bh
 	} )
@@ -691,11 +751,11 @@ function TurtleCalendar.create_frame()
 
 	m.boxes.bg = m.create_box( content, {
 		id = "bg",
-		name = "Battleground",
+		name = m.T[ "Battleground" ],
 		background = m.images[ "bg_arathi" ],
 		header = "Arathi",
-		sub1 = "BG of the day",
-		sub2 = "Resets every day",
+		sub1 = m.T[ "BG of the day" ],
+		sub2 = m.T[ "Resets every day" ],
 		width = 413,
 		height = 184 -- 413 * 0.4453125
 	} )
@@ -703,21 +763,21 @@ function TurtleCalendar.create_frame()
 
 	m.boxes.dmf = m.create_box( content, {
 		id = "dmf",
-		name = "Darkmoon faire",
+		name = m.T[ "Darkmoon faire" ],
 		background = m.images[ "Thunder Bluff" ],
 		header = "Day off",
 		sub1 = "It will be back tomorrow",
 		sub2 = "Stays at Thuner Bluff until",
 		width = 413,
-		height = 184 -- 413 * 0.4453125
+		height = 184
 	} )
 	m.boxes.dmf:SetPoint( "TopLeft", m.boxes.bg, "TopRight", 5, 0 )
 
 	m.boxes.instances = m.create_box( content, {
 		id = "instances",
-		name = "Instances",
+		name = m.T[ "Instances" ],
 		background = m.images[ "instances" ],
-		header = "Instances",
+		header = m.T[ "Instances" ],
 		width = bw,
 		height = 184,
 	} )
@@ -825,7 +885,25 @@ function TurtleCalendar.on_update()
 				box[ "inst" .. i .. "_name" ]:SetText( "" )
 				box[ "inst" .. i .. "_time" ]:SetText( "" )
 			end
-			box.sub2:SetText( getn( m.db.instances ) == 0 and "No lockouts" or "" )
+			box.sub2:SetText( getn( m.db.instances ) == 0 and m.T[ "No lockouts" ] or "" )
+		end
+
+		-- World Buffs
+		m.world_buffs.clear_expired_timers()
+		box = m.boxes.wbuffs
+		if box.is_visible then
+			local text
+
+			if m.db.show_sw_buffs then
+				text = m.world_buffs.get_buffs( "A" )
+			end
+
+			if m.db.show_og_buffs then
+				text = text and text .. " | " or ""
+				text = text .. m.world_buffs.get_buffs( "H" )
+			end
+
+			box.sub1:SetText( text )
 		end
 
 		if (m.sday ~= m.server_day_number()) then
@@ -852,7 +930,7 @@ function TurtleCalendar.refresh()
 			local box = m.boxes[ v ]
 			if m.instances[ k ] and box.is_visible then
 				if v == "kara" or v == "ony" then
-					m.boxes[ v ].sub1:SetText( string.format( "ID: |cffdddd00%s|r", m.instances[ k ].id ) )
+					m.boxes[ v ].sub1:SetText( string.format( "ID: " .. m.colors.yellow .. "%s|r", m.instances[ k ].id ) )
 				else
 					box.inst_name:SetText( (box.inst_name:GetText() or "") .. k .. "\n" )
 					box.inst_id:SetText( (box.inst_id:GetText() or "") .. m.instances[ k ].id .. "\n" )
@@ -896,23 +974,24 @@ function TurtleCalendar.refresh()
 	m.boxes.bg.bg:SetTexture( m.images[ "bg_" .. m.bgs[ bg_idx ].id ].image )
 
 	bg_idx = mod( (m.sday - 2), 5 ) + 1
-	m.boxes.bg.next_day:SetText( "Coming next day: " .. m.bgs[ bg_idx ].name )
+	m.boxes.bg.next_day:SetText( m.T[ "Coming next day: " ] .. m.bgs[ bg_idx ].name )
 	m.boxes.bg.next_bg:SetTexture( m.images[ "bg_" .. m.bgs[ bg_idx ].id ].image )
 
 	-- Darkmoon Fair
 	local dmf_idx = mod( math.floor( (m.sday - 3) / m.timers[ m.realm ][ "dmf" ].interval ), 2 ) + 1
 	local now = date( "!*t", m.get_server_time() + m.time_offset )
-	local dmf = dmf_idx == 1 and "Thunder Bluff" or "Goldshire"
+	local dmf = dmf_idx == 1 and m.T[ "Thunder Bluff" ] or m.T[ "Goldshire" ]
+	local dmf_img = dmf_idx == 1 and "Thunder Bluff" or "Goldshire"
 
-	m.boxes.dmf.bg:SetTexture( m.images[ dmf ].image )
+	m.boxes.dmf.bg:SetTexture( m.images[ dmf_img ].image )
 	if now.wday == 4 then
-		m.boxes.dmf.header:SetText( "Day off" )
-		m.boxes.dmf.sub1:SetText( "It will be back tomorrow" )
-		m.boxes.dmf.sub2:SetText( "Stays at " .. dmf .. " until" )
+		m.boxes.dmf.header:SetText( m.T[ "Day off" ] )
+		m.boxes.dmf.sub1:SetText( m.T[ "It will be back tomorrow" ] )
+		m.boxes.dmf.sub2:SetText( string.format( m.T[ "Stays at %s until" ], dmf ) )
 	else
-		m.boxes.dmf.header:SetText( dmf )
-		m.boxes.dmf.sub1:SetText( "Darkmoon Faire position" )
-		m.boxes.dmf.sub2:SetText( "Moves out every Sunday" )
+		m.boxes.dmf.header:SetText( dmf or "" )
+		m.boxes.dmf.sub1:SetText( m.T[ "Darkmoon Faire position" ] )
+		m.boxes.dmf.sub2:SetText( m.T[ "Moves out every Sunday" ] )
 	end
 
 	m.reorder()
@@ -925,57 +1004,83 @@ function TurtleCalendar.popup_menu()
 	end
 end
 
-function TurtleCalendar.popup_initialize()
+function TurtleCalendar.popup_initialize( level )
+	local function toggle_setting( setting )
+		m.db[ setting ] = not this.checked
+		m.refresh()
+		m.delta = 1
+	end
+
 	local function on_raid_click( arg1 )
 		m.db.boxes[ arg1 ][ 2 ] = not this.checked
 		m.reorder()
 	end
 
-	UIDropDownMenu_AddButton( { isTitle = true, notCheckable = true, text = "Global" } )
-	UIDropDownMenu_AddButton( {
-		text = "Condensed timers",
-		keepShownOnClick = 1,
-		checked = m.db.condensed_timers or false,
-		func = function()
-			m.db.condensed_timers = not this.checked
-			m.delta = 1
-		end
-	} )
-	UIDropDownMenu_AddButton( {
-		text = "Show timers",
-		keepShownOnClick = 1,
-		checked = m.db.show_timers,
-		func = function()
-			m.db.show_timers = not this.checked
-			m.refresh()
-			m.delta = 1
-		end
-	} )
-	UIDropDownMenu_AddButton( {
-		text = "Show dates",
-		keepShownOnClick = 1,
-		checked = m.db.show_dates,
-		func = function()
-			m.db.show_dates = not this.checked
-			m.refresh()
-			m.delta = 1
-		end
-	} )
-	UIDropDownMenu_AddButton( { isTitle = true, notCheckable = true, text = "Raids" } )
+	if level == 1 then
+		UIDropDownMenu_AddButton( { isTitle = true, notCheckable = true, text = m.T[ "Global" ] } )
+		UIDropDownMenu_AddButton( {
+			text = m.T[ "Condensed timers" ],
+			arg1 = "condensed_timers",
+			keepShownOnClick = 1,
+			checked = m.db.condensed_timers,
+			func = toggle_setting
+		} )
+		UIDropDownMenu_AddButton( {
+			text = m.T[ "Show timers" ],
+			arg1 = "show_timers",
+			keepShownOnClick = 1,
+			checked = m.db.show_timers,
+			func = toggle_setting
+		} )
+		UIDropDownMenu_AddButton( {
+			text = m.T[ "Show dates" ],
+			arg1 = "show_dates",
+			keepShownOnClick = 1,
+			checked = m.db.show_dates,
+			func = toggle_setting
+		} )
+		UIDropDownMenu_AddButton( { isTitle = true, notCheckable = true, text = m.T[ "Raids" ] } )
 
-	local info = {
-		func = on_raid_click,
-		keepShownOnClick = 1
-	}
+		local info = {
+			func = on_raid_click,
+			keepShownOnClick = 1
+		}
 
-	for i, box in ipairs( m.db.boxes ) do
-		if i == 6 then
-			UIDropDownMenu_AddButton( { isTitle = true, notCheckable = true, text = "Misc" } )
+		for i, box in ipairs( m.db.boxes ) do
+			if i == 6 then
+				UIDropDownMenu_AddButton( { isTitle = true, notCheckable = true, text = m.T[ "Misc" ] } )
+			end
+			info.text = m.boxes[ box[ 1 ] ].data.name
+			info.arg1 = i
+			info.checked = m.boxes[ box[ 1 ] ].is_visible
+			UIDropDownMenu_AddButton( info )
 		end
-		info.text = m.boxes[ box[ 1 ] ].data.name
-		info.arg1 = i
-		info.checked = m.boxes[ box[ 1 ] ].is_visible
-		UIDropDownMenu_AddButton( info )
+
+		UIDropDownMenu_AddButton( {
+			text = m.T[ "World Buffs" ],
+			arg1 = "show_world_buffs",
+			keepShownOnClick = 1,
+			menuList = "WorldBuffs",
+			hasArrow = true,
+			checked = m.db.show_world_buffs,
+			func = toggle_setting
+		} )
+	elseif level == 2 then
+		UIDropDownMenu_AddButton( {
+			text = m.T[ "Stormwind buffs" ],
+			arg1 = "show_sw_buffs",
+			keepShownOnClick = 1,
+			checked = m.db.show_sw_buffs,
+			func = toggle_setting
+		}, level )
+
+		UIDropDownMenu_AddButton( {
+			text = m.T[ "Orgrimmar buffs" ],
+			arg1 = "show_og_buffs",
+			keepShownOnClick = 1,
+			checked = m.db.show_og_buffs,
+			func = toggle_setting
+		}, level )
 	end
 end
 
@@ -1000,6 +1105,11 @@ function TurtleCalendar.reorder()
 	local prev_box
 	local line1
 	local line2
+	local top = 0
+
+	if m.db.show_world_buffs then
+		top = -35
+	end
 
 	for i, box_info in ipairs( m.db.boxes ) do
 		---@type BoxFrame
@@ -1009,7 +1119,7 @@ function TurtleCalendar.reorder()
 		if box_info[ 2 ] then
 			if i <= 5 then
 				if pos == 1 then
-					box:SetPoint( "TopLeft", m.popup.content, "TopLeft", 0, 0 )
+					box:SetPoint( "TopLeft", m.popup.content, "TopLeft", 0, top )
 					line1 = 1
 				else
 					box:SetPoint( "TopLeft", prev_box, "TopRight", 5, 0 )
@@ -1017,7 +1127,7 @@ function TurtleCalendar.reorder()
 				end
 			else
 				if not line2 then
-					box:SetPoint( "TopLeft", m.popup.content, "TopLeft", 0, -(222 + 5) )
+					box:SetPoint( "TopLeft", m.popup.content, "TopLeft", 0, top - (222 + 5) )
 					line2 = 1
 				else
 					box:SetPoint( "TopLeft", prev_box, "TopRight", 5, 0 )
@@ -1067,8 +1177,26 @@ function TurtleCalendar.reorder()
 		end
 	end
 
+	m.height = m.height - top
 	m.width = m.width - 30 + (m.frame_padding * 2)
 	m.height = m.height - 30 + (m.frame_padding * 2)
+
+	local box = m.boxes[ "wbuffs" ]
+	box.set_visibility( m.db.show_world_buffs )
+	if m.db.show_world_buffs then
+		box.sub1:SetWidth( m.width - (m.frame_padding * 3) - 5 )
+		box.sub1:SetHeight( 10 )
+		if m.db.show_og_buffs and m.db.show_sw_buffs and m.width < 700 then
+			box.sub2:Hide()
+		else
+			if m.width < 500 then
+				box.sub2:Hide()
+			else
+				box.sub2:Show()
+			end
+		end
+	end
+
 	m.popup:SetWidth( m.width * (m.db.scale or 1) )
 	m.on_resize()
 end
@@ -1135,14 +1263,14 @@ end
 ---@param message string
 ---@param short boolean?
 function TurtleCalendar.info( message, short )
-	local tag = string.format( "|c%s%s|r", m.tagcolor, short and "TC" or "TurtleCalendar" )
+	local tag = string.format( "%s%s|r", m.colors.tag, short and "TC" or "TurtleCalendar" )
 	DEFAULT_CHAT_FRAME:AddMessage( string.format( "%s: %s", tag, message ) )
 end
 
 ---@param message string
 function TurtleCalendar.debug( message )
 	if m.debug_enabled then
-		local tag = string.format( "|c%s%s|r", m.tagcolor, "TC" )
+		local tag = string.format( "%s%s|r", m.colors.tag, "TC" )
 		DEFAULT_CHAT_FRAME:AddMessage( string.format( "%s: %s", tag, message ) )
 	end
 end
@@ -1220,10 +1348,21 @@ function TurtleCalendar.count( t )
 	return count
 end
 
+-- Split the provided string by the specified delimiter.
+function TurtleCalendar.str_split( str, delimiter )
+	if not str then return nil end
+	delimiter = delimiter or ":"
+	local fields = {}
+	local pattern = string.format( "([^%s]+)", delimiter )
+	string.gsub( str, pattern, function( c ) fields[ getn( fields ) + 1 ] = c end )
+	return unpack( fields )
+end
+
 function TurtleCalendar.pfui_skin( frame )
 	if not m.pfui_skin_enabled then return end
 
 	m.frame_padding = 8
+	m.boxes.wbuffs:SetPoint( "Right", frame.content, "Right", -m.frame_padding, 0 )
 
 	m.api.pfUI.api.StripTextures( frame, nil, "BACKGROUND" )
 	m.api.pfUI.api.CreateBackdrop( frame, nil, true, 0.8 )
@@ -1237,7 +1376,7 @@ function TurtleCalendar.pfui_skin( frame )
 	frame.title_bar.line2:Hide()
 
 	for _, box in pairs( m.boxes ) do
-		m.api.pfUI.api.StripTextures( box, nil, "BORDER" )
+		box:SetBackdropBorderColor( rr, rg, rb, ra )
 	end
 
 	frame.resize_grip:SetPoint( "BottomRight", frame, "BottomRight", 2, -2 )

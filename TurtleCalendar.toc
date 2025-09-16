@@ -1,12 +1,18 @@
 ## Interface: 11200
 ## Title: TurtleCalendar
 ## Author: sica
-## Version: 0.7
+## Version: 0.8
 ## Notes: In-game calendar that shows raid & instance reset timers
 ## SavedVariablesPerCharacter: TurtleCalendarOptions
 
 libs\LibStub\LibStub.lua
 libs\Libs.xml
 
+translations\enUS.lua
+translations\esES.lua
+translations\zhCN.lua
+translations\zhTW.lua
+
 TurtleCalendar.lua
+WorldBuffs.lua
 MinimapIcon.lua
