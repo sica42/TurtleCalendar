@@ -77,13 +77,13 @@ function TurtleCalendar:init()
 	self.utc_offset = m.get_utc_offset()
 	self.timers = {
 		[ "Nordanaar" ] = {
-			[ "raid40" ] = { interval = 7, anchor = m.time_utc( { year = 2025, month = 9, day = 3, hour = 7 } ) },
-			[ "ony" ] = { interval = 5, anchor = m.time_utc( { year = 2025, month = 9, day = 1, hour = 7 } ) },
-			[ "kara" ] = { interval = 5, anchor = m.time_utc( { year = 2025, month = 9, day = 2, hour = 7 } ) },
-			[ "zg" ] = { interval = 3, anchor = m.time_utc( { year = 2025, month = 8, day = 30, hour = 7 } ) },
-			[ "eom" ] = { interval = 14, anchor = m.time_utc( { year = 2025, month = 4, day = 8, hour = 3 } ) },
-			[ "bg" ] = { interval = 1, anchor = m.time_utc( { year = 2025, month = 9, day = 1, hour = 3 } ) },
-			[ "dmf" ] = { interval = 7, anchor = m.time_utc( { year = 2025, month = 9, day = 0, hour = 3 } ) }
+			[ "raid40" ] = { interval = 7, anchor = m.time_utc( { year = 2025, month = 9, day = 3, hour = 3 } ) },
+			[ "ony" ] = { interval = 5, anchor = m.time_utc( { year = 2025, month = 9, day = 1, hour = 3 } ) },
+			[ "kara" ] = { interval = 5, anchor = m.time_utc( { year = 2025, month = 9, day = 2, hour = 3 } ) },
+			[ "zg" ] = { interval = 3, anchor = m.time_utc( { year = 2025, month = 8, day = 30, hour = 3 } ) },
+			[ "eom" ] = { interval = 14, anchor = m.time_utc( { year = 2025, month = 4, day = 7, hour = 23 } ) },
+			[ "bg" ] = { interval = 1, anchor = m.time_utc( { year = 2025, month = 9, day = 0, hour = 23 } ) },
+			[ "dmf" ] = { interval = 7, anchor = m.time_utc( { year = 2025, month = 8, day = 30, hour = 23 } ) }
 		},
 		[ "Tel'Abim" ] = {
 			[ "raid40" ] = { interval = 7, anchor = m.time_utc( { year = 2025, month = 9, day = 4, hour = 7 } ) },
@@ -1288,7 +1288,7 @@ function TurtleCalendar.get_utc_offset()
 end
 
 function TurtleCalendar.time_utc( t )
-	return time( t ) - m.utc_offset
+	return time( t ) + m.utc_offset
 end
 
 ---@return integer seconds
