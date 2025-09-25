@@ -73,37 +73,39 @@ TurtleCalendar.raids = {
 	[ m.T[ "Ruins of Ahn'Qiraj" ] ] = "zg",
 }
 
-TurtleCalendar.timers = {
-	[ "Nordanaar" ] = {
-		[ "raid40" ] = { interval = 7, anchor = time { year = 2025, month = 9, day = 3, hour = 4 } },
-		[ "ony" ] = { interval = 5, anchor = time { year = 2025, month = 9, day = 1, hour = 4 } },
-		[ "kara" ] = { interval = 5, anchor = time { year = 2025, month = 9, day = 2, hour = 4 } },
-		[ "zg" ] = { interval = 3, anchor = time { year = 2025, month = 8, day = 30, hour = 4 } },
-		[ "eom" ] = { interval = 14, anchor = time { year = 2025, month = 4, day = 8, hour = 0 } },
-		[ "bg" ] = { interval = 1, anchor = time { year = 2025, month = 9, day = 1, hour = 0 } },
-		[ "dmf" ] = { interval = 7, anchor = time { year = 2025, month = 9, day = 0, hour = 0 } }
-	},
-	[ "Tel'Abim" ] = {
-		[ "raid40" ] = { interval = 7, anchor = time { year = 2025, month = 9, day = 4, hour = 4 } },
-		[ "ony" ] = { interval = 5, anchor = time { year = 2025, month = 9, day = 0, hour = 4 } },
-		[ "kara" ] = { interval = 5, anchor = time { year = 2025, month = 9, day = 0, hour = 4 } },
-		[ "zg" ] = { interval = 3, anchor = time { year = 2025, month = 8, day = 28, hour = 4 } },
-		[ "eom" ] = { interval = 14, anchor = time { year = 2025, month = 4, day = 8, hour = 0 } },
-		[ "bg" ] = { interval = 1, anchor = time { year = 2025, month = 9, day = 1, hour = 0 } },
-		[ "dmf" ] = { interval = 7, anchor = time { year = 2025, month = 9, day = 0, hour = 0 } }
-	},
-	[ "Ambershire" ] = {
-		[ "raid40" ] = { interval = 7, anchor = time { year = 2025, month = 9, day = 3, hour = 4 } },
-		[ "ony" ] = { interval = 5, anchor = time { year = 2025, month = 9, day = 1, hour = 4 } },
-		[ "kara" ] = { interval = 5, anchor = time { year = 2025, month = 9, day = 2, hour = 4 } },
-		[ "zg" ] = { interval = 3, anchor = time { year = 2025, month = 8, day = 30, hour = 4 } },
-		[ "eom" ] = { interval = 14, anchor = time { year = 2025, month = 4, day = 8, hour = 0 } },
-		[ "bg" ] = { interval = 1, anchor = time { year = 2025, month = 9, day = 1, hour = 0 } },
-		[ "dmf" ] = { interval = 7, anchor = time { year = 2025, month = 9, day = 0, hour = 0 } }
-	},
-}
-
 function TurtleCalendar:init()
+	self.utc_offset = m.get_utc_offset()
+	self.timers = {
+		[ "Nordanaar" ] = {
+			[ "raid40" ] = { interval = 7, anchor = m.time_utc( { year = 2025, month = 9, day = 3, hour = 7 } ) },
+			[ "ony" ] = { interval = 5, anchor = m.time_utc( { year = 2025, month = 9, day = 1, hour = 7 } ) },
+			[ "kara" ] = { interval = 5, anchor = m.time_utc( { year = 2025, month = 9, day = 2, hour = 7 } ) },
+			[ "zg" ] = { interval = 3, anchor = m.time_utc( { year = 2025, month = 8, day = 30, hour = 7 } ) },
+			[ "eom" ] = { interval = 14, anchor = m.time_utc( { year = 2025, month = 4, day = 8, hour = 3 } ) },
+			[ "bg" ] = { interval = 1, anchor = m.time_utc( { year = 2025, month = 9, day = 1, hour = 3 } ) },
+			[ "dmf" ] = { interval = 7, anchor = m.time_utc( { year = 2025, month = 9, day = 0, hour = 3 } ) }
+		},
+		[ "Tel'Abim" ] = {
+			[ "raid40" ] = { interval = 7, anchor = m.time_utc( { year = 2025, month = 9, day = 4, hour = 7 } ) },
+			[ "ony" ] = { interval = 5, anchor = m.time_utc( { year = 2025, month = 9, day = 0, hour = 7 } ) },
+			[ "kara" ] = { interval = 5, anchor = m.time_utc( { year = 2025, month = 9, day = 0, hour = 7 } ) },
+			[ "zg" ] = { interval = 3, anchor = m.time_utc( { year = 2025, month = 8, day = 28, hour = 7 } ) },
+			[ "eom" ] = { interval = 14, anchor = m.time_utc( { year = 2025, month = 4, day = 8, hour = 3 } ) },
+			[ "bg" ] = { interval = 1, anchor = m.time_utc( { year = 2025, month = 9, day = 1, hour = 3 } ) },
+			[ "dmf" ] = { interval = 7, anchor = m.time_utc( { year = 2025, month = 9, day = 0, hour = 3 } ) }
+		},
+		[ "Ambershire" ] = {
+			[ "raid40" ] = { interval = 7, anchor = m.time_utc( { year = 2025, month = 9, day = 3, hour = 7 } ) },
+			[ "ony" ] = { interval = 5, anchor = m.time_utc( { year = 2025, month = 9, day = 1, hour = 7 } ) },
+			[ "kara" ] = { interval = 5, anchor = m.time_utc( { year = 2025, month = 9, day = 2, hour = 7 } ) },
+			[ "zg" ] = { interval = 3, anchor = m.time_utc( { year = 2025, month = 8, day = 30, hour = 7 } ) },
+			[ "eom" ] = { interval = 14, anchor = m.time_utc( { year = 2025, month = 4, day = 8, hour = 3 } ) },
+			[ "bg" ] = { interval = 1, anchor = m.time_utc( { year = 2025, month = 9, day = 1, hour = 3 } ) },
+			[ "dmf" ] = { interval = 7, anchor = m.time_utc( { year = 2025, month = 9, day = 0, hour = 3 } ) }
+		},
+	}
+
+
 	self.frame = CreateFrame( "Frame" )
 	self.frame:SetScript( "OnEvent", function()
 		if m.events[ event ] then
@@ -142,7 +144,6 @@ function TurtleCalendar.events.PLAYER_LOGIN()
 	}
 
 	m.frame_padding = 15
-	m.time_offset = 3600
 	m.delta = 1
 	m.first = true
 	m.realm = GetRealmName()
@@ -297,7 +298,7 @@ function TurtleCalendar.clear_expired_instances()
 	local instances = {}
 	for _, v in ipairs( m.db.instances ) do
 		if v.timestamp then
-			if (now - v.timestamp < m.time_offset) then
+			if (now - v.timestamp < 3600) then
 				table.insert( instances, v )
 			end
 		end
@@ -479,7 +480,6 @@ function TurtleCalendar.create_box( parent, data )
 		sub2:SetPoint( "Right", frame, "Right", -10, 0 )
 		sub2:SetPoint( "Top", frame, "Top", 0, -10 )
 		sub2:SetFontObject( m.font_tiny )
-		--sub2:SetFont( "Interface\\AddOns\\TurtleCalendar\\assets\\AoboshiOne.ttf", 9, "" )
 	end
 
 	if data.id ~= "instances" and data.id ~= "wbuffs" then
@@ -864,7 +864,7 @@ function TurtleCalendar.on_update()
 				end
 
 				if m.db.show_dates then
-					box.date:SetText( date( m.db.date_format, time( date( "*t", next + m.time_offset ) ) ) )
+					box.date:SetText( date( m.db.date_format, time( date( "*t", next ) ) ) )
 				end
 			end
 		end
@@ -979,7 +979,7 @@ function TurtleCalendar.refresh()
 
 	-- Darkmoon Fair
 	local dmf_idx = mod( math.floor( (m.sday - 3) / m.timers[ m.realm ][ "dmf" ].interval ), 2 ) + 1
-	local now = date( "!*t", m.get_server_time() + m.time_offset )
+	local now = date( "!*t", m.get_server_time() )
 	local dmf = dmf_idx == 1 and m.T[ "Thunder Bluff" ] or m.T[ "Goldshire" ]
 	local dmf_img = dmf_idx == 1 and "Thunder Bluff" or "Goldshire"
 
@@ -1275,11 +1275,27 @@ function TurtleCalendar.debug( message )
 	end
 end
 
+function TurtleCalendar.get_utc_offset()
+	-- Calculate the difference between local time and UTC
+	-- by comparing the number of seconds since the start of the year
+	local now = time()
+	local utc_table = date( "!*t", now )
+	local utc_seconds = (utc_table.hour * 3600) + (utc_table.min * 60) + utc_table.sec + ((utc_table.yday - 1) * 24 * 3600)
+	local local_table = date( "*t", now )
+	local local_seconds = (local_table.hour * 3600) + (local_table.min * 60) + local_table.sec + ((local_table.yday - 1) * 24 * 3600)
+
+	return local_seconds - utc_seconds
+end
+
+function TurtleCalendar.time_utc( t )
+	return time( t ) - m.utc_offset
+end
+
 ---@return integer seconds
 ---@nodiscard
 function TurtleCalendar.get_server_time()
 	local server_ts = time()
-	server_ts = server_ts - m.time_offset
+	server_ts = server_ts
 
 	return server_ts
 end
@@ -1288,7 +1304,7 @@ end
 function TurtleCalendar.server_day_number()
 	local server_ts = TurtleCalendar.get_server_time()
 
-	return math.floor( (server_ts + m.time_offset) / 86400 )
+	return math.floor( server_ts / 86400 )
 end
 
 ---@param raid table
