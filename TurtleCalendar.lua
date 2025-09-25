@@ -733,7 +733,7 @@ function TurtleCalendar.create_frame()
 		name = m.T[ "Raid" ] .. " 40",
 		background = m.images[ "bwl" ],
 		header = m.T[ "Raid" ] .. " 40",
-		sub1 = "MC/BWL/AQ40/Naxx/ES",
+		sub1 = "MC/BWL/AQ40/Naxx/ES/Kara",
 		sub2 = string.format( m.T[ "Resets every %d days" ], 7 ),
 		width = bw,
 		height = bh
