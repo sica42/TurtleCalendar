@@ -147,12 +147,13 @@ function TurtleCalendar.events.PLAYER_LOGIN()
 	m.first = true
 	m.realm = GetRealmName()
 	m.api = getfenv()
+	m.player = UnitName( "player" )
 
 	---@class MinimapIcon
 	m.minimap_icon = m.MinimapIcon.new()
 
 	---@class WorldBuffs
-	m.world_buffs = m.WorldBuffs.new( m.db.wb_timers )
+	m.world_buffs = m.WorldBuffs.new()
 
 	m.font_header = CreateFont( "TCFontHeader" )
 	m.font_header:SetFont( "Interface\\AddOns\\TurtleCalendar\\assets\\AoboshiOne.ttf", 25, "" )
@@ -473,7 +474,45 @@ function TurtleCalendar.create_box( parent, data )
 	frame.sub2 = sub2
 
 	if data.id == "wbuffs" then
-		sub1:SetPoint( "Top", frame, "Top", 0, -10 )
+		local buff_frame = CreateFrame( "Frame", nil, frame )
+		buff_frame:SetHeight( 15 )
+		buff_frame:SetPoint( "Center", frame, "Center", 0, 0 )
+		frame.buff_frame = buff_frame
+
+		for i = 1, 5 do
+			buff_frame[ "text_frame" .. i ] = CreateFrame( "Frame", nil, buff_frame )
+			buff_frame[ "text_frame" .. i ]:SetHeight( 15 )
+			buff_frame[ "text_frame" .. i ].index = i
+			buff_frame[ "text_frame" .. i ].text = buff_frame[ "text_frame" .. i ]:CreateFontString( nil, "OVERLAY", "TCFontNormal" )
+			buff_frame[ "text_frame" .. i ].text:SetPoint( "TopLeft", buff_frame[ "text_frame" .. i ], "TopLeft", 0, -2 )
+			if i == 1 then
+				buff_frame[ "text_frame" .. i ]:SetPoint( "Left", buff_frame, "Left", 0, 0 )
+			else
+				buff_frame[ "text_frame" .. i ]:SetPoint( "Left", buff_frame[ "text_frame" .. (i - 1) ], "Right", 0, 0 )
+			end
+			if i ~= 3 then
+				buff_frame[ "text_frame" .. i ]:EnableMouse( true )
+				buff_frame[ "text_frame" .. i ]:SetScript( "OnEnter", function()
+					local faction = this.index < 3 and "A" or "H"
+					local boss = mod( this.index - 1, 3 ) == 0 and "O" or "N"
+					local timer = m.db.wb_timers and m.db.wb_timers[ faction ] and m.db.wb_timers[ faction ][ boss ]
+					if not timer then return end
+
+					GameTooltip:SetOwner( this, "ANCHOR_BOTTOMRIGHT" )
+					local titleColor = faction == 'A' and m.colors.alliance or m.colors.horde
+					GameTooltip:SetText( titleColor .. m.WorldBuffs.bosses[ boss ] .. ' Head' )
+					local timerColor = m.world_buffs.get_timer_color( timer.witness, timer.receivedFrom )
+					local h, min = m.world_buffs.get_time_left( timer.h, timer.m )
+					GameTooltip:AddLine( m.colors.white .. 'Time left: ' .. timerColor .. m.world_buffs.to_string( h, min ) )
+					local witness = timer.witness == m.player and 'YOU' or timer.witness
+					GameTooltip:AddLine( m.colors.white .. 'Witness: ' .. m.colors.pizza .. witness )
+					GameTooltip:Show()
+				end )
+				buff_frame[ "text_frame" .. i ]:SetScript( "OnLeave", function()
+					GameTooltip:Hide()
+				end )
+			end
+		end
 		sub2:ClearAllPoints()
 		sub2:SetPoint( "Right", frame, "Right", -10, 0 )
 		sub2:SetPoint( "Top", frame, "Top", 0, -10 )
@@ -890,18 +929,21 @@ function TurtleCalendar.on_update()
 		m.world_buffs.clear_expired_timers()
 		box = m.boxes.wbuffs
 		if box.is_visible then
-			local text
+			local buffs_a = m.world_buffs.get_buffs( "A" )
+			local buffs_h = m.world_buffs.get_buffs( "H" )
+			local total_width = 0
 
-			if m.db.show_sw_buffs then
-				text = m.world_buffs.get_buffs( "A" )
+			for i = 1, 5 do
+				local string = (m.db.show_sw_buffs and i < 3 and buffs_a[ i ]) or (m.db.show_og_buffs and i > 3 and buffs_h[ i - 3 ]) or
+						(i == 3 and (m.db.show_sw_buffs and m.db.show_og_buffs) and " | ") or ""
+
+				box.buff_frame[ "text_frame" .. i ].text:SetText( string )
+				local width = box.buff_frame[ "text_frame" .. i ].text:GetWidth() or 0
+
+				box.buff_frame[ "text_frame" .. i ]:SetWidth( width )
+				total_width = total_width + width
 			end
-
-			if m.db.show_og_buffs then
-				text = text and text .. " | " or ""
-				text = text .. m.world_buffs.get_buffs( "H" )
-			end
-
-			box.sub1:SetText( text )
+			box.buff_frame:SetWidth( total_width )
 		end
 
 		if (m.sday ~= m.server_day_number()) then

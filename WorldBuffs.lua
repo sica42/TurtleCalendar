@@ -7,7 +7,10 @@ if m.WorldBuffs then return end
 
 ---@class WorldBuffs
 ---@field get_buffs fun( faction: string): string
+---@field get_timer_color fun( witness: string, receivedFrom: string): string
+---@field get_time_left fun( h: number, min: number): (number, number)
 ---@field clear_expired_timers fun()
+---@field to_string fun( h: number, min: number): string
 
 local M = {}
 
@@ -27,7 +30,7 @@ M.yell_triggers = {
 	},
 }
 
-function M.new( wb_timers )
+function M.new()
 	local channel_name = "LFT"
 	local timer_strs = {}
 	local is_on_kalimdor
@@ -64,7 +67,7 @@ function M.new( wb_timers )
 	-- Encode all of our timers as strings, separated by semicolon.
 	local function encode_all()
 		local timersStr
-		for _, timers in pairs( wb_timers ) do
+		for _, timers in pairs( m.db.wb_timers ) do
 			for _, timer in pairs( timers ) do
 				local faction, boss, h, min, witness = timer.faction, timer.boss, timer.h, timer.m, timer.witness
 				timersStr = (timersStr and timersStr .. ';' or '') .. encode( faction, boss, h, min, witness )
@@ -106,9 +109,9 @@ function M.new( wb_timers )
 
 	-- Check if condition applies to any of our timers.
 	local function some_timer( fn )
-		if not wb_timers then return false end
+		if not m.db.wb_timers then return false end
 
-		for _, timers in pairs( wb_timers ) do
+		for _, timers in pairs( m.db.wb_timers ) do
 			for _, timer in pairs( timers ) do
 				if fn( timer ) then return true end
 			end
@@ -123,9 +126,9 @@ function M.new( wb_timers )
 
 	-- Invoke fn for each timer we have stored currently.
 	local function for_each_timer( fn )
-		if not wb_timers then return end
+		if not m.db.wb_timers then return end
 
-		for _, timers in pairs( wb_timers ) do
+		for _, timers in pairs( m.db.wb_timers ) do
 			for _, timer in pairs( timers ) do
 				fn( timer )
 			end
@@ -189,7 +192,7 @@ function M.new( wb_timers )
 
 	-- Clear all local timers, even valid ones.
 	local function clear_all_timers()
-		wb_timers = {
+		m.db.wb_timers = {
 			A = {},
 			H = {},
 		}
@@ -197,13 +200,13 @@ function M.new( wb_timers )
 
 	-- Remove the provided timer from our local timer store.
 	local function clear_timer( timer )
-		wb_timers[ timer.faction ][ timer.boss ] = nil
+		m.db.wb_timers[ timer.faction ][ timer.boss ] = nil
 	end
 
 	-- Clear all invalid timers from our local timer store.
 	local function clear_expired_timers()
 		-- Initialize timers if they somehow haven't been initialized yet
-		if not wb_timers then clear_all_timers() end
+		if not m.db.wb_timers then clear_all_timers() end
 
 		for_each_timer( function( timer )
 			if not is_valid( timer.h, timer.m, timer.acceptedAt ) then
@@ -214,11 +217,11 @@ function M.new( wb_timers )
 
 	-- Get our current timer for the provided faction and boss.
 	local function get_timer( faction, boss )
-		return wb_timers[ faction ][ boss ]
+		return m.db.wb_timers[ faction ][ boss ]
 	end
 
 	local function set_timer( faction, boss, h, min, witness, received_from )
-		wb_timers[ faction ][ boss ] = {
+		m.db.wb_timers[ faction ][ boss ] = {
 			faction = faction,
 			boss = boss,
 			h = h,
@@ -371,9 +374,10 @@ function M.new( wb_timers )
 	end
 
 	local function get_buffs( faction )
+		local strings = {}
 		local str
 		for _, boss in pairs( { "O", "N" } ) do
-			local timer = wb_timers and wb_timers[ faction ] and wb_timers[ faction ][ boss ]
+			local timer = m.db.wb_timers and m.db.wb_timers[ faction ] and m.db.wb_timers[ faction ][ boss ]
 			local time_str = m.colors.grey .. m.T[ "N/A" ]
 			if timer then
 				local h, min = get_time_left( timer.h, timer.m )
@@ -382,9 +386,10 @@ function M.new( wb_timers )
 			local boss_color = faction == 'A' and m.colors.alliance or m.colors.horde
 			str = str and str .. ", " or ""
 			str = str .. boss_color .. m.T[ M.bosses[ boss ] ] .. ": " .. time_str .. "|r"
+			table.insert( strings, (getn(strings) == 0 and "" or ", ") .. boss_color .. m.T[ M.bosses[ boss ] ] .. ": |r" .. time_str .. "|r" )
 		end
 
-		return str
+		return strings
 	end
 
 	frame:SetScript( "OnUpdate", on_update )
@@ -393,7 +398,10 @@ function M.new( wb_timers )
 	---@type WorldBuffs
 	return {
 		get_buffs = get_buffs,
+		get_timer_color = get_timer_color,
+		get_time_left = get_time_left,
 		clear_expired_timers = clear_expired_timers,
+		to_string = to_string
 	}
 end
 
