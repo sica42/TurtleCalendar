@@ -73,6 +73,12 @@ TurtleCalendar.raids = {
 	[ m.T[ "Ruins of Ahn'Qiraj" ] ] = "zg",
 }
 
+TurtleCalendar.quests = {
+	[ "Call to Arms: Cleansing the Corruption" ] = {},
+	[ "Call to Arms: Dungeon Delving" ] = {},
+	[ "Call to Arms: Molten Assault" ] = {}
+}
+
 function TurtleCalendar:init()
 	self.utc_offset = m.get_utc_offset()
 	self.timers = {
@@ -130,6 +136,8 @@ function TurtleCalendar.events.PLAYER_LOGIN()
 	if m.db.show_world_buffs == nil then m.db.show_world_buffs = true end
 	if m.db.show_sw_buffs == nil then m.db.show_sw_buffs = true end
 	if m.db.show_og_buffs == nil then m.db.show_og_buffs = true end
+	if m.db.show_weekly_quests_alert == nil then m.db.show_weekly_quests_alert = true end
+	m.db.quests = m.db.quests or {}
 	m.db.minimap_icon = m.db.minimap_icon or { hide = false }
 	m.db.boxes = m.db.boxes or {
 		[ 1 ] = { "raid40", true },
@@ -262,6 +270,66 @@ function TurtleCalendar.events.PLAYER_REGEN_DISABLED()
 		m.debug( "Instance locked: " .. m.current_instance.name )
 		table.insert( m.db.instances, m.current_instance )
 		m.current_instance = nil
+	end
+end
+
+function TurtleCalendar.events.ZONE_CHANGED_NEW_AREA()
+	local zone = GetZoneText()
+	if zone == "Stormwind City" or zone == "Orgrimmar" then
+		m.check_quests()
+	end
+end
+
+function TurtleCalendar.events.QUEST_LOG_UPDATE()
+	local num = GetNumQuestLogEntries()
+
+	for _, q in pairs( m.quests ) do
+		q.found = false
+	end
+
+	for i = 1, num do
+		local title, _, _, _, _, completed = GetQuestLogTitle( i )
+		completed = completed and true or false
+		if m.quests[ title ] then
+			m.quests[ title ].found = true
+			local quest = m.db.quests[ title ]
+			if not quest or quest and (not quest.active or quest.completed ~= completed) then
+				m.db.quests[ title ] = {
+					active = not completed,
+					timestamp = time(),
+					completed = completed
+				}
+			end
+		end
+	end
+
+	for k, q in pairs( m.quests ) do
+		if not q.found then
+			local quest = m.db.quests[ k ]
+			if quest and not quest.completed then quest.active = false end
+		end
+	end
+end
+
+function TurtleCalendar.check_quests()
+	if m.db.show_weekly_quests_alert then
+		local do_warn = false
+		for _, q in pairs( m.db.quests ) do
+			local last_thu = m.get_last_thursday()
+			if not q.active and not q.completed or (not q.active and q.completed and m.get_last_thursday( q.timestamp ) ~= last_thu) then
+				do_warn = true
+				break
+			end
+		end
+
+		if do_warn then
+			if RaidWarningFrame then
+				RaidWarningFrame:AddMessage( "Weekly quests are available to pick up!", 1.0, 0.1, 0.2, 1.0, 8 )
+				m.api.PlaySound( "RaidWarning" )
+				m.api.PlaySound( "PVPTHROUGHQUEUE" )
+			end
+			m.info( "|cffff0000Weekly quests are available to pick up!|r" )
+		end
 	end
 end
 
@@ -1105,6 +1173,14 @@ function TurtleCalendar.popup_initialize( level )
 			checked = m.db.show_world_buffs,
 			func = toggle_setting
 		} )
+
+		UIDropDownMenu_AddButton( {
+			text = m.T[ "Weekly quest reminder" ],
+			arg1 = "show_weekly_quests_alert",
+			keepShownOnClick = 1,
+			checked = m.db.show_weekly_quests_alert,
+			func = toggle_setting
+		}	)
 	elseif level == 2 then
 		UIDropDownMenu_AddButton( {
 			text = m.T[ "Stormwind buffs" ],
@@ -1377,6 +1453,20 @@ function TurtleCalendar.seconds_dhms( seconds )
 	seconds = mod( seconds, 60 )
 
 	return days, hours, min, seconds
+end
+
+function TurtleCalendar.get_last_thursday( ts )
+	ts = ts or time()
+	-- Server is 4h ahead of UTC
+	local t = date( "*t", m.time_utc( date( "*t", ts ) ) - (3600 * 4) )
+	local wday = t.wday
+	local days_back = (wday >= 5) and (wday - 5) or (7 - (5 - wday))
+	t.day = t.day - days_back
+	t.hour = 0
+	t.min = 0
+	t.sec = 0
+
+	return time( t )
 end
 
 ---@param value string|number
