@@ -387,7 +387,7 @@ function TurtleCalendar.reset_instances()
 	end
 
 	-- If you reset an instance without having engaged in combat
-	if m.db.last_instance and not found_unlocked then
+	if m.db.last_instance and m.db.last_instance ~= "" and not found_unlocked then
 		table.insert( m.db.instances, { name = m.db.last_instance, timestamp = time(), locked = true } )
 	end
 
