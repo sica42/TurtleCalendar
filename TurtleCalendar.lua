@@ -67,6 +67,7 @@ TurtleCalendar.raids = {
 	[ m.T[ "Ahn'Qiraj Temple" ] ] = "raid40",
 	[ m.T[ "Naxxramas" ] ] = "raid40",
 	[ m.T[ "Emerald Sanctum" ] ] = "raid40",
+	[ m.T[ "Tower of Karazhan" ] ] = "raid40",
 	[ m.T[ "Onyxia's Lair" ] ] = "ony",
 	[ m.T[ "Lower Karazhan Halls" ] ] = "kara",
 	[ m.T[ "Zul'Gurub" ] ] = "zg",
@@ -282,6 +283,7 @@ end
 
 function TurtleCalendar.events.QUEST_LOG_UPDATE()
 	local num = GetNumQuestLogEntries()
+	local last_thu = m.get_last_thursday()
 
 	for _, q in pairs( m.quests ) do
 		q.found = false
@@ -294,11 +296,13 @@ function TurtleCalendar.events.QUEST_LOG_UPDATE()
 			m.quests[ title ].found = true
 			local quest = m.db.quests[ title ]
 			if not quest or quest and (not quest.active or quest.completed ~= completed) then
-				m.db.quests[ title ] = {
-					active = not completed,
-					timestamp = time(),
-					completed = completed
-				}
+				if not quest or not quest.completed or last_thu ~= m.get_last_thursday( quest.timestamp ) then
+					m.db.quests[ title ] = {
+						active = not completed,
+						timestamp = time(),
+						completed = completed
+					}
+				end
 			end
 		end
 	end
@@ -314,9 +318,10 @@ end
 function TurtleCalendar.check_quests()
 	if m.db.show_weekly_quests_alert then
 		local do_warn = false
+		local last_thu = m.get_last_thursday()
+
 		for _, q in pairs( m.db.quests ) do
-			local last_thu = m.get_last_thursday()
-			if not q.active and not q.completed or (not q.active and q.completed and m.get_last_thursday( q.timestamp ) ~= last_thu) then
+			if not q.active and (not q.completed or m.get_last_thursday( q.timestamp ) ~= last_thu) then
 				do_warn = true
 				break
 			end
@@ -1456,7 +1461,7 @@ function TurtleCalendar.seconds_dhms( seconds )
 end
 
 function TurtleCalendar.get_last_thursday( ts )
-	ts = ts or time()
+	ts = ts or time()+3600
 	-- Server is 4h ahead of UTC
 	local t = date( "*t", m.time_utc( date( "*t", ts ) ) - (3600 * 4) )
 	local wday = t.wday
