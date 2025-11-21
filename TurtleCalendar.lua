@@ -1416,14 +1416,17 @@ end
 ---@nodiscard
 function TurtleCalendar.get_server_time()
 	local server_ts = time()
-	server_ts = server_ts
+	local t = date("*t", server_ts)
+	if not t.isdst then
+		server_ts = server_ts - 3600
+	end
 
 	return server_ts
 end
 
 ---@return integer
 function TurtleCalendar.server_day_number()
-	local server_ts = TurtleCalendar.get_server_time()
+	local server_ts = m.server_time or TurtleCalendar.get_server_time()
 
 	return math.floor( server_ts / 86400 )
 end
