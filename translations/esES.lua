@@ -1,10 +1,6 @@
-TurtleCalendar = TurtleCalendar or {}
+TurtleCalendar_translation = TurtleCalendar_translation or {}
 
----@class TurtleCalendar
-local m = TurtleCalendar
-m.translations = m.translations or {}
-
-m.translations[ "esES" ] = {
+TurtleCalendar_translation[ "esES" ] = {
 	[ 'YELL_TRIGGER_ALLIANCE_ONYXIA' ] = 'La aterradora Onyxia, está colgada de los arcos.',
 	[ 'YELL_TRIGGER_ALLIANCE_NEFARIAN' ] = '¡Ciudadanos de la Alianza, el Señor de Roca Negra está muerto! ¡Nefarian ha sido vencido',
 	[ 'YELL_TRIGGER_HORDE_ONYXIA' ] = '¡Onyxia, la madre de linaje del Vuelo, ha sido asesinada!',

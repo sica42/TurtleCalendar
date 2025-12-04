@@ -1,10 +1,6 @@
-TurtleCalendar = TurtleCalendar or {}
+TurtleCalendar_translation = TurtleCalendar_translation or {}
 
----@class TurtleCalendar
-local m = TurtleCalendar
-m.translations = m.translations or {}
-
-m.translations[ "zhCN" ] = {
+TurtleCalendar_translation[ "zhCN" ] = {
 	[ 'YELL_TRIGGER_ALLIANCE_ONYXIA' ] = '向我们的英雄们致敬',
 	[ 'YELL_TRIGGER_ALLIANCE_NEFARIAN' ] = '黑石之王已经被干掉了',
 	[ 'YELL_TRIGGER_HORDE_ONYXIA' ] = '奥妮克希亚已经被斩杀了',

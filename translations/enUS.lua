@@ -1,18 +1,6 @@
-TurtleCalendar = TurtleCalendar or {}
+TurtleCalendar_translation = TurtleCalendar_translation or {}
 
----@class TurtleCalendar
-local m = TurtleCalendar
-m.translations = m.translations or {}
-
-m.T = setmetatable( (m.translations or {})[ GetLocale() or "enUS" ] or {}, {
-	__index = function( tbl, key )
-		local value = tostring( key )
-		rawset( tbl, key, value )
-		return value
-	end
-} )
-
-m.translations[ "enUS" ] = {
+TurtleCalendar_translation[ "enUS" ] = {
 	[ "YELL_TRIGGER_ALLIANCE_ONYXIA" ] = "The dread lady, Onyxia, hangs from the arches!",
 	[ "YELL_TRIGGER_ALLIANCE_NEFARIAN" ] = "Citizens of the Alliance, the Lord of Blackrock is slain! Nefarian has been subdued",
 	[ "YELL_TRIGGER_HORDE_ONYXIA" ] = "The brood mother, Onyxia, has been slain!",

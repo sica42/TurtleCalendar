@@ -1,6 +1,17 @@
 ---@class TurtleCalendar
 TurtleCalendar = TurtleCalendar or {}
 
+TurtleCalendar.translations = (TurtleCalendar_translation[GetLocale() or "enUS"])
+
+-- use table index key as translation fallback
+TurtleCalendar.T = setmetatable(TurtleCalendar.translations, {
+	__index = function(tab, key)
+		local value = tostring(key)
+		rawset(tab, key, value)
+		return value
+	end
+})
+
 ---@class TurtleCalendar
 local m = TurtleCalendar
 
