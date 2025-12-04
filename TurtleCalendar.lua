@@ -15,6 +15,10 @@ TurtleCalendar.T = setmetatable(TurtleCalendar.translations, {
 ---@class TurtleCalendar
 local m = TurtleCalendar
 
+local ARHei_font_path = "Interface\\AddOns\\TurtleCalendar\\assets\\ARHei.ttf"
+local AoboshiOne_font_path = "Interface\\AddOns\\TurtleCalendar\\assets\\AoboshiOne.ttf"
+local Monaco_font_path = "Interface\\AddOns\\TurtleCalendar\\assets\\Monaco.ttf"
+
 BINDING_HEADER_TURTLECALENDAR_HEADER = "TurtleCalendar"
 BINDING_NAME_TURTLECALENDAR_OPENMENU = m.T[ "Toggle the calendar" ]
 
@@ -176,26 +180,26 @@ function TurtleCalendar.events.PLAYER_LOGIN()
 	m.world_buffs = m.WorldBuffs.new()
 
 	m.font_header = CreateFont( "TCFontHeader" )
-	m.font_header:SetFont( "Interface\\AddOns\\TurtleCalendar\\assets\\AoboshiOne.ttf", 25, "" )
+	m.font_header:SetFont( AoboshiOne_font_path, 25, "" )
 	m.font_medium = CreateFont( "TCFontMedium" )
-	m.font_medium:SetFont( "Interface\\AddOns\\TurtleCalendar\\assets\\AoboshiOne.ttf", 12, "" )
+	m.font_medium:SetFont( AoboshiOne_font_path, 12, "" )
 	m.font_normal = CreateFont( "TCFontNormal" )
-	m.font_normal:SetFont( "Interface\\AddOns\\TurtleCalendar\\assets\\AoboshiOne.ttf", 11, "" )
+	m.font_normal:SetFont( AoboshiOne_font_path, 11, "" )
 	m.font_small = CreateFont( "TCFontSmall" )
-	m.font_small:SetFont( "Interface\\AddOns\\TurtleCalendar\\assets\\AoboshiOne.ttf", 10, "" )
+	m.font_small:SetFont( AoboshiOne_font_path, 10, "" )
 	m.font_tiny = CreateFont( "TCFontTiny" )
-	m.font_tiny:SetFont( "Interface\\AddOns\\TurtleCalendar\\assets\\AoboshiOne.ttf", 9, "" )
+	m.font_tiny:SetFont( AoboshiOne_font_path, 9, "" )
 	m.font_digit_label = CreateFont( "TCFontDigitLabel" )
-	m.font_digit_label:SetFont( "Interface\\AddOns\\TurtleCalendar\\assets\\Monaco.ttf", 8, "" )
+	m.font_digit_label:SetFont( Monaco_font_path, 8, "" )
 
 	local locale = GetLocale() or "enUS"
 	if locale == "zhCN" or locale == "zhTW" then
-		m.font_header:SetFont( "Fonts\\ARHei.ttf", 25, "" )
-		m.font_medium:SetFont( "Fonts\\ARHei.ttf", 12, "" )
-		m.font_normal:SetFont( "Fonts\\ARHei.ttf", 11, "" )
-		m.font_small:SetFont( "Fonts\\ARHei.ttf", 10, "" )
-		m.font_tiny:SetFont( "Fonts\\ARHei.ttf", 9, "" )
-		m.font_digit_label:SetFont( "Fonts\\ARHei.ttf", 8, "" )
+		m.font_header:SetFont( ARHei_font_path, 25, "" )
+		m.font_medium:SetFont( ARHei_font_path, 12, "" )
+		m.font_normal:SetFont( ARHei_font_path, 11, "" )
+		m.font_small:SetFont( ARHei_font_path, 10, "" )
+		m.font_tiny:SetFont( ARHei_font_path, 9, "" )
+		m.font_digit_label:SetFont( ARHei_font_path, 8, "" )
 	end
 
 	m.api[ "SLASH_TurtleCalendar1" ] = "/tc"
@@ -427,7 +431,7 @@ function TurtleCalendar.create_digit( parent, unit, size )
 	scroll_frame:SetScrollChild( child_frame )
 
 	local digit = child_frame:CreateFontString( nil, "OVERLAY" )
-	digit:SetFont( "Interface\\AddOns\\TurtleCalendar\\assets\\Monaco.ttf", size, "" )
+	digit:SetFont( Monaco_font_path, size, "" )
 	digit:SetTextColor( 0.8, 0.8, 0.8, 1 )
 	digit:SetPoint( "TopLeft", child_frame, "TopLeft", 0, 0 )
 
@@ -537,7 +541,7 @@ function TurtleCalendar.create_box( parent, data )
 			frame[ "inst" .. i .. "_name" ] = name
 
 			local time = frame:CreateFontString( nil, "OVERLAY" )
-			time:SetFont( "Interface\\AddOns\\TurtleCalendar\\assets\\Monaco.ttf", 11, "" )
+			time:SetFont( Monaco_font_path, 11, "" )
 			time:SetHeight( 15 )
 			time:SetPoint( "TopLeft", frame, "TopRight", -55, -40 - (i * 20) )
 			frame[ "inst" .. i .. "_time" ] = time
@@ -642,7 +646,7 @@ function TurtleCalendar.create_box( parent, data )
 		frame.sec:SetPoint( "BottomLeft", frame.min, "BottomRight", 10, 0 )
 
 		local date = frame:CreateFontString( nil, "OVERLAY" )
-		date:SetFont( "Interface\\AddOns\\TurtleCalendar\\assets\\Monaco.ttf", 12, "" )
+		date:SetFont( Monaco_font_path, 12, "" )
 		date:SetPoint( "Bottom", frame, "Bottom", 0, 15 )
 		date:SetPoint( "Center", frame, "Center", 0, 0 )
 		date:SetTextColor( 0.8, 0.8, 0.8, 1 )
@@ -1071,10 +1075,10 @@ function TurtleCalendar.refresh()
 			box.date:Show()
 			if m.db.show_timers then
 				box.date:SetPoint( "Bottom", box, "Bottom", 0, 15 )
-				box.date:SetFont( "Interface\\AddOns\\TurtleCalendar\\assets\\Monaco.ttf", 12, "" )
+				box.date:SetFont( Monaco_font_path, 12, "" )
 			else
 				box.date:SetPoint( "Bottom", box, "Bottom", 0, 60 )
-				box.date:SetFont( "Interface\\AddOns\\TurtleCalendar\\assets\\Monaco.ttf", 22, "" )
+				box.date:SetFont( Monaco_font_path, 22, "" )
 			end
 		else
 			box.date:Hide()
