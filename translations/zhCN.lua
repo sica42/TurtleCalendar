@@ -1,6 +1,7 @@
 TurtleCalendar_translation = TurtleCalendar_translation or {}
 
 TurtleCalendar_translation[ "zhCN" ] = {
+	[ "Turtle Calendar v" ] = "乌龟日历 v",
 	[ 'YELL_TRIGGER_ALLIANCE_ONYXIA' ] = '可怕的奥妮克希亚悬挂在拱门上！',
 	[ 'YELL_TRIGGER_ALLIANCE_NEFARIAN' ] = '联盟的市民们，黑石之主已死，奈法利安已被击败！',
 	[ 'YELL_TRIGGER_HORDE_ONYXIA' ] = '奥妮克希亚已经被斩杀了',
@@ -22,6 +23,7 @@ TurtleCalendar_translation[ "zhCN" ] = {
 	[ "World Buffs" ] = "世界增益",
 	[ "Stormwind buffs" ] = "暴风城增益",
 	[ "Orgrimmar buffs" ] = "奥格瑞玛增益",
+	[ "Weekly quest reminder" ] = "周常任务提醒",
 	[ "Raid" ] = "团队",
 	[ "Resets every %d days" ] = "每 %d 天重置一次",
 	[ "Edge of Madness" ] = "疯狂之缘",

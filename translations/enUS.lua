@@ -1,6 +1,7 @@
 TurtleCalendar_translation = TurtleCalendar_translation or {}
 
 TurtleCalendar_translation[ "enUS" ] = {
+	[ "Turtle Calendar v" ] = "Turtle Calendar v",
 	[ "YELL_TRIGGER_ALLIANCE_ONYXIA" ] = "The dread lady, Onyxia, hangs from the arches!",
 	[ "YELL_TRIGGER_ALLIANCE_NEFARIAN" ] = "Citizens of the Alliance, the Lord of Blackrock is slain! Nefarian has been subdued",
 	[ "YELL_TRIGGER_HORDE_ONYXIA" ] = "The brood mother, Onyxia, has been slain!",
@@ -22,6 +23,7 @@ TurtleCalendar_translation[ "enUS" ] = {
 	[ "World Buffs" ] = "World Buffs",
 	[ "Stormwind buffs" ] = "Stormwind buffs",
 	[ "Orgrimmar buffs" ] = "Orgrimmar buffs",
+	[ "Weekly quest reminder" ] = "Weekly quest reminder",
 	[ "Raid" ] = "Raid",
 	[ "Resets every %d days" ] = "Resets every %d days",
 	[ "Zul'Gurub Edge of Madness" ] = "Zul'Gurub Edge of Madness",

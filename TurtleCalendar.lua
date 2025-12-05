@@ -793,7 +793,7 @@ function TurtleCalendar.create_frame()
 
 	local title = title_bar:CreateFontString( nil, "OVERLAY", "GameFontHighlight" )
 	title:SetPoint( "Left", title_bar, "Left", 7, 1 )
-	title:SetText( "Turtle Calendar v" .. m.version )
+	title:SetText( m.T[ "Turtle Calendar v" ] .. m.version )
 
 	-- Main content
 	local content = CreateFrame( "Frame", nil, frame )
