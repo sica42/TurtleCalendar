@@ -140,12 +140,14 @@ function TurtleCalendar:init()
 end
 
 function TurtleCalendar.events.PLAYER_LOGIN()
+	local loc = GetLocale() or "enUS"
+
 	-- Initialize DB
 	TurtleCalendarOptions = TurtleCalendarOptions or {}
 	m.db = TurtleCalendarOptions
 	m.db.instances = m.db.instances or {}
 	m.db.last_instance = m.db.last_instance or ""
-	m.db.date_format = m.db.date_format or "%d.%m.%Y"
+	if m.db.date_format == nil then if loc == "zhCN" or loc == "zhTW" then m.db.date_format = "%Y/%m/%d" else m.db.date_format = "%d.%m.%Y" end end
 	if m.db.show_timers == nil then m.db.show_timers = true end
 	if m.db.show_dates == nil then m.db.show_dates = false end
 	if m.db.condensed_timers == nil then m.db.condensed_timers = false end
