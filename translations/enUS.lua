@@ -1,6 +1,7 @@
 TurtleCalendar_translation = TurtleCalendar_translation or {}
 
 TurtleCalendar_translation[ "enUS" ] = {
+	[ "TurtleCalendar" ] = "Turtle Calendar",
 	[ "Turtle Calendar v" ] = "Turtle Calendar v",
 	[ "YELL_TRIGGER_ALLIANCE_ONYXIA" ] = "The dread lady, Onyxia, hangs from the arches!",
 	[ "YELL_TRIGGER_ALLIANCE_NEFARIAN" ] = "Citizens of the Alliance, the Lord of Blackrock is slain! Nefarian has been subdued",

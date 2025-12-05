@@ -1,6 +1,7 @@
 TurtleCalendar_translation = TurtleCalendar_translation or {}
 
 TurtleCalendar_translation[ "zhCN" ] = {
+	[ "TurtleCalendar" ] = "乌龟日历",
 	[ "Turtle Calendar v" ] = "乌龟日历 v",
 	[ 'YELL_TRIGGER_ALLIANCE_ONYXIA' ] = '可怕的奥妮克希亚悬挂在拱门上！',
 	[ 'YELL_TRIGGER_ALLIANCE_NEFARIAN' ] = '联盟的市民们，黑石之主已死，奈法利安已被击败！',
