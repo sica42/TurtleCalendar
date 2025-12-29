@@ -24,7 +24,7 @@ function M.new()
 	local obj = ldb:NewDataObject( "Broker_TurtleCalendar", data ) ---[[@as LibDataBroker.DataDisplay]]
 
 	function obj.OnTooltipShow( self )
-		self:AddLine( "TurtleCalendar" )
+		self:AddLine( m.T["TurtleCalendar"] )
 		self:AddLine( m.T["Left-click to toggle."], 0.5, 0.5, 0.5 )
 	end
 
