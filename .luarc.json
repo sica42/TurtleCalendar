@@ -17,6 +17,7 @@
     "GameFontNormal",
     "GameFontNormalSmall",
     "INSTANCE_RESET_SUCCESS",
+    "TurtleCalendar_translation",
     "mod"
   ],
   "Lua.runtime.version": "Lua 5.1",

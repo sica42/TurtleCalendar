@@ -1050,20 +1050,74 @@ function TurtleCalendar.refresh()
 	m.sday = m.server_day_number()
 
 	-- Raids
-	m.boxes.raid40.inst_name:SetText( "" )
-	m.boxes.raid40.inst_id:SetText( "" )
-	m.boxes.zg.inst_name:SetText( "" )
-	m.boxes.zg.inst_id:SetText( "" )
+	for _,v in ipairs({"raid40", "zg", "ony", "kara"} ) do
+		---@type BoxFrame
+		local box = m.boxes[ v ]
+		box.inst_name:SetText( "" )
+		box.inst_id:SetText( "" )
+		box:SetBackdrop( {
+			bgFile = "Interface\\Buttons\\WHITE8X8",
+			edgeFile = "Interface\\AddOns\\TurtleCalendar\\assets\\UI-Border.tga",
+			tile = true,
+			edgeSize = 16,
+			tileSize = 32,
+			insets = {
+				left = 5,
+				right = 5,
+				top = 5,
+				bottom = 5
+			}
+		} )
+		box:SetBackdropColor( 0, 0, 0, 1 )
+	end
 
 	if m.instances then
 		for k, v in pairs( m.raids ) do
+			---@type BoxFrame
 			local box = m.boxes[ v ]
 			if m.instances[ k ] and box.is_visible then
 				if v == "kara" or v == "ony" then
-					m.boxes[ v ].sub1:SetText( string.format( "ID: " .. m.colors.yellow .. "%s|r", m.instances[ k ].id ) )
+					box.inst_name:SetText( box.data.name )
+					box.inst_id:SetText(  m.instances[ k ].id )
+					box:SetBackdrop( {
+						bgFile = "Interface\\Buttons\\WHITE8X8",
+						edgeFile = "Interface\\AddOns\\TurtleCalendar\\assets\\UI-Border-Red.tga",
+						tile = true,
+						edgeSize = 16,
+						tileSize = 32,
+						insets = {
+							left = 5,
+							right = 5,
+							top = 5,
+							bottom = 5
+						}
+					} )
+					box:SetBackdropColor( 0.2, 0, 0, 1 )
 				else
 					box.inst_name:SetText( (box.inst_name:GetText() or "") .. k .. "\n" )
 					box.inst_id:SetText( (box.inst_id:GetText() or "") .. m.instances[ k ].id .. "\n" )
+				end
+			end
+		end
+
+		for _,v in ipairs({"raid40", "zg"} ) do
+			if m.boxes[ v ].is_visible then
+				local _, count = string.gsub(m.boxes[ v ].inst_name:GetText() or "", "\n", "\n")
+				if v == "raid40" and count == 6 or v == "zg" and count == 2 then
+					m.boxes[ v ]:SetBackdrop( {
+						bgFile = "Interface\\Buttons\\WHITE8X8",
+						edgeFile = "Interface\\AddOns\\TurtleCalendar\\assets\\UI-Border-Red.tga",
+						tile = true,
+						edgeSize = 16,
+						tileSize = 32,
+						insets = {
+							left = 5,
+							right = 5,
+							top = 5,
+							bottom = 5
+						}
+					} )
+					m.boxes[ v ]:SetBackdropColor(0.2, 0, 0, 1 )
 				end
 			end
 		end
