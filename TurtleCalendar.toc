@@ -2,10 +2,11 @@
 ## Title: |cffabd473Turtle|cffffffffCalendar|r
 ## Title-zhCN: 乌龟日历
 ## Author: sica
-## Version: 1.0
+## Version: 1.1
 ## Notes: In-game calendar that shows raid & instance reset timers
 ## Notes-zhCN: 游戏内日历，显示副本、团本、战场、暗月马戏团、世界Buffs等重置计时。输入 /turtlecalendar 或 /tc 打开日历，或者在快捷键中指定快捷键，右键打开菜单。
 ## SavedVariablesPerCharacter: TurtleCalendarOptions
+## SavedVariables: TurtleCalendarGlobalOptions
 
 libs\LibStub\LibStub.lua
 libs\Libs.xml

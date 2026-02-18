@@ -1,16 +1,16 @@
 ---@class TurtleCalendar
 TurtleCalendar = TurtleCalendar or {}
 
-TurtleCalendar.translations = (TurtleCalendar_translation[GetLocale() or "enUS"])
+TurtleCalendar.translations = (TurtleCalendar_translation[ GetLocale() or "enUS" ])
 
 -- use table index key as translation fallback
-TurtleCalendar.T = setmetatable(TurtleCalendar.translations, {
-	__index = function(tab, key)
-		local value = tostring(key)
-		rawset(tab, key, value)
+TurtleCalendar.T = setmetatable( TurtleCalendar.translations, {
+	__index = function( tab, key )
+		local value = tostring( key )
+		rawset( tab, key, value )
 		return value
 	end
-})
+} )
 
 ---@class TurtleCalendar
 local m = TurtleCalendar
@@ -141,6 +141,12 @@ end
 
 function TurtleCalendar.events.PLAYER_LOGIN()
 	local loc = GetLocale() or "enUS"
+	m.frame_padding = 15
+	m.delta = 1
+	m.first = true
+	m.realm = GetRealmName()
+	m.api = getfenv()
+	m.player = UnitName( "player" )
 
 	-- Initialize DB
 	TurtleCalendarOptions = TurtleCalendarOptions or {}
@@ -168,12 +174,11 @@ function TurtleCalendar.events.PLAYER_LOGIN()
 		[ 8 ] = { "instances", true }
 	}
 
-	m.frame_padding = 15
-	m.delta = 1
-	m.first = true
-	m.realm = GetRealmName()
-	m.api = getfenv()
-	m.player = UnitName( "player" )
+	-- Global DB
+	TurtleCalendarGlobalOptions = TurtleCalendarGlobalOptions or {}
+	m.gdb = TurtleCalendarGlobalOptions
+	m.gdb.lockouts = m.gdb.lockouts or {}
+	if not m.gdb.lockouts[ m.realm ] then m.gdb.lockouts[ m.realm ] = {} end
 
 	---@class MinimapIcon
 	m.minimap_icon = m.MinimapIcon.new()
@@ -277,10 +282,13 @@ function TurtleCalendar.events.UPDATE_INSTANCE_INFO()
 			m.instances[ instanceName ] = {
 				name = instanceName,
 				id = instanceID,
-				reset = instanceReset
+				reset = instanceReset,
+				timestamp = time()
 			}
 		end
 	end
+
+	m.gdb.lockouts[ m.realm ][ m.player ] = m.instances
 end
 
 function TurtleCalendar.events.PLAYER_REGEN_DISABLED()
@@ -483,18 +491,13 @@ function TurtleCalendar.create_digit( parent, unit, size )
 	return scroll_frame
 end
 
----@param parent Frame
----@param data table
----@return BoxFrame
-function TurtleCalendar.create_box( parent, data )
-	---@class BoxFrame: Frame
-	local frame = CreateFrame( "Frame", nil, parent )
-	frame:SetWidth( data.width )
-	frame:SetHeight( data.height )
-	frame:EnableMouse( true )
-	frame:SetBackdrop( {
+---@param box BoxFrame
+---@param texture string
+---@param red number?
+function TurtleCalendar.set_box_bg( box, texture, red )
+	box:SetBackdrop( {
 		bgFile = "Interface\\Buttons\\WHITE8X8",
-		edgeFile = "Interface\\AddOns\\TurtleCalendar\\assets\\UI-Border.tga",
+		edgeFile = "Interface\\AddOns\\TurtleCalendar\\assets\\" .. texture,
 		tile = true,
 		edgeSize = 16,
 		tileSize = 32,
@@ -505,7 +508,20 @@ function TurtleCalendar.create_box( parent, data )
 			bottom = 5
 		}
 	} )
-	frame:SetBackdropColor( 0, 0, 0, 1 )
+	box:SetBackdropColor( red and red or 0, 0, 0, 1 )
+end
+
+---@param parent Frame
+---@param data table
+---@return BoxFrame
+function TurtleCalendar.create_box( parent, data )
+	---@class BoxFrame: Frame
+	local frame = CreateFrame( "Frame", nil, parent )
+	frame:SetWidth( data.width )
+	frame:SetHeight( data.height )
+	frame:EnableMouse( true )
+
+	m.set_box_bg( frame, "UI-Border.tga" )
 
 	if data.id ~= "wbuffs" then
 		local bg = frame:CreateTexture( nil, "ARTWORK" )
@@ -797,6 +813,41 @@ function TurtleCalendar.create_frame()
 	title:SetPoint( "Left", title_bar, "Left", 7, 1 )
 	title:SetText( m.T[ "Turtle Calendar v" ] .. m.version )
 
+	-- Character dropdown
+	local chars = 0
+	for player in pairs( m.gdb.lockouts[ m.realm ] ) do
+		if player ~= m.player and next(m.gdb.lockouts[ m.realm ][ player ]) then chars = chars + 1 end
+	end
+
+	if chars > 0 then
+		local dd = CreateFrame( "Button", "TurtleCalendarPlayers", title_bar, "UIDropDownMenuTemplate" )
+		dd:SetPoint( "Right", title_bar, "Right", -15, 0 )
+		dd:SetScale( 0.7 )
+		title_bar.dd = dd
+
+		UIDropDownMenu_Initialize( dd, function()
+			local info = {
+				func = function( player )
+					m.current_player = player
+					UIDropDownMenu_SetSelectedValue( dd, player )
+					m.refresh()
+				end
+			}
+
+			for player in pairs( m.gdb.lockouts[ m.realm ] ) do
+				if player == m.player or next(m.gdb.lockouts[ m.realm ][ player ]) then
+					info.text = player
+					info.value = player
+					info.arg1 = player
+					UIDropDownMenu_AddButton( info )
+				end
+			end
+			UIDropDownMenu_SetSelectedValue( dd, m.current_player or m.player )
+		end )
+
+		UIDropDownMenu_SetWidth( 80, dd )
+	end
+
 	-- Main content
 	local content = CreateFrame( "Frame", nil, frame )
 	content:SetPoint( "TopLeft", frame, "TopLeft", 15, -35 )
@@ -1050,74 +1101,50 @@ function TurtleCalendar.refresh()
 	m.sday = m.server_day_number()
 
 	-- Raids
-	for _,v in ipairs({"raid40", "zg", "ony", "kara"} ) do
+	for _, v in ipairs( { "raid40", "zg", "ony", "kara" } ) do
 		---@type BoxFrame
 		local box = m.boxes[ v ]
 		box.inst_name:SetText( "" )
 		box.inst_id:SetText( "" )
-		box:SetBackdrop( {
-			bgFile = "Interface\\Buttons\\WHITE8X8",
-			edgeFile = "Interface\\AddOns\\TurtleCalendar\\assets\\UI-Border.tga",
-			tile = true,
-			edgeSize = 16,
-			tileSize = 32,
-			insets = {
-				left = 5,
-				right = 5,
-				top = 5,
-				bottom = 5
-			}
-		} )
-		box:SetBackdropColor( 0, 0, 0, 1 )
+		m.set_box_bg( box, "UI-Border.tga" )
+	end
+
+	if m.current_player and m.gdb.lockouts[ m.realm ] and m.gdb.lockouts[ m.realm ][ m.current_player ] then
+		m.instances = m.gdb.lockouts[ m.realm ][ m.current_player ]
 	end
 
 	if m.instances then
 		for k, v in pairs( m.raids ) do
+			local skip = false
 			---@type BoxFrame
 			local box = m.boxes[ v ]
 			if m.instances[ k ] and box.is_visible then
-				if v == "kara" or v == "ony" then
-					box.inst_name:SetText( box.data.name )
-					box.inst_id:SetText(  m.instances[ k ].id )
-					box:SetBackdrop( {
-						bgFile = "Interface\\Buttons\\WHITE8X8",
-						edgeFile = "Interface\\AddOns\\TurtleCalendar\\assets\\UI-Border-Red.tga",
-						tile = true,
-						edgeSize = 16,
-						tileSize = 32,
-						insets = {
-							left = 5,
-							right = 5,
-							top = 5,
-							bottom = 5
-						}
-					} )
-					box:SetBackdropColor( 0.2, 0, 0, 1 )
-				else
-					box.inst_name:SetText( (box.inst_name:GetText() or "") .. k .. "\n" )
-					box.inst_id:SetText( (box.inst_id:GetText() or "") .. m.instances[ k ].id .. "\n" )
+				if m.current_player then
+					local next = m.next_raid( m.timers[ m.realm ][ v ] )
+
+					if date( m.db.date_format, time( date( "*t", next ) ) ) ~= date( m.db.date_format, time( date( "*t", m.instances[ k ].timestamp + m.instances[ k ].reset ) ) ) then
+						skip = true
+					end
+				end
+
+				if not skip then
+					if v == "kara" or v == "ony" then
+						box.inst_name:SetText( box.data.name )
+						box.inst_id:SetText( m.instances[ k ].id )
+						m.set_box_bg( box, "UI-Border-Red.tga", 0.2 )
+					else
+						box.inst_name:SetText( (box.inst_name:GetText() or "") .. k .. "\n" )
+						box.inst_id:SetText( (box.inst_id:GetText() or "") .. m.instances[ k ].id .. "\n" )
+					end
 				end
 			end
 		end
 
-		for _,v in ipairs({"raid40", "zg"} ) do
+		for _, v in ipairs( { "raid40", "zg" } ) do
 			if m.boxes[ v ].is_visible then
-				local _, count = string.gsub(m.boxes[ v ].inst_name:GetText() or "", "\n", "\n")
+				local _, count = string.gsub( m.boxes[ v ].inst_name:GetText() or "", "\n", "\n" )
 				if v == "raid40" and count == 6 or v == "zg" and count == 2 then
-					m.boxes[ v ]:SetBackdrop( {
-						bgFile = "Interface\\Buttons\\WHITE8X8",
-						edgeFile = "Interface\\AddOns\\TurtleCalendar\\assets\\UI-Border-Red.tga",
-						tile = true,
-						edgeSize = 16,
-						tileSize = 32,
-						insets = {
-							left = 5,
-							right = 5,
-							top = 5,
-							bottom = 5
-						}
-					} )
-					m.boxes[ v ]:SetBackdropColor(0.2, 0, 0, 1 )
+					m.set_box_bg( m.boxes[ v ], "UI-Border-Red.tga", 0.2 )
 				end
 			end
 		end
@@ -1256,7 +1283,7 @@ function TurtleCalendar.popup_initialize( level )
 			keepShownOnClick = 1,
 			checked = m.db.show_weekly_quests_alert,
 			func = toggle_setting
-		}	)
+		} )
 	elseif level == 2 then
 		UIDropDownMenu_AddButton( {
 			text = m.T[ "Stormwind buffs" ],
@@ -1487,7 +1514,7 @@ end
 ---@nodiscard
 function TurtleCalendar.get_server_time()
 	local server_ts = time()
-	local t = date("*t", server_ts)
+	local t = date( "*t", server_ts )
 	if not t.isdst then
 		server_ts = server_ts - 3600
 	end
@@ -1535,7 +1562,7 @@ function TurtleCalendar.seconds_dhms( seconds )
 end
 
 function TurtleCalendar.get_last_thursday( ts )
-	ts = ts or time()+3600
+	ts = ts or time() + 3600
 	-- Server is 4h ahead of UTC
 	local t = date( "*t", m.time_utc( date( "*t", ts ) ) - (3600 * 4) )
 	local wday = t.wday
@@ -1599,6 +1626,10 @@ function TurtleCalendar.pfui_skin( frame )
 	local rr, rg, rb, ra = m.api.pfUI.api.GetStringColor( m.api.pfUI_config.appearance.border.color )
 	frame.title_bar.line1:SetBackdropColor( rr, rg, rb, ra )
 	frame.title_bar.line2:Hide()
+
+	if frame.title_bar.dd then
+		m.api.pfUI.api.SkinDropDown( frame.title_bar.dd )
+	end
 
 	for _, box in pairs( m.boxes ) do
 		box:SetBackdropBorderColor( rr, rg, rb, ra )
